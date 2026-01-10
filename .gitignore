@@ -31,7 +31,9 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
+.env.production
 
 # typescript
 *.tsbuildinfo
@@ -39,3 +41,26 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Testing
+coverage/
+.jest/
+test-results/
+
+# Build artifacts
+*.apk
+*.aab
+*.ipa
+builds/
+
+# Secrets (never commit these)
+google-service-account.json
+*.keystore
+*.jks
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
