@@ -1,4 +1,4 @@
-import { Platform, Dimensions } from 'react-native';
+import { Platform, Dimensions, Alert } from 'react-native';
 import { APP_CONFIG } from '../constants/theme';
 
 const { width, height } = Dimensions.get('window');
@@ -241,4 +241,36 @@ export function groupBy<T>(array: T[], key: keyof T): Record<string, T[]> {
     result[groupKey].push(item);
     return result;
   }, {} as Record<string, T[]>);
+}
+
+// Cross-platform alert - shows simple notification
+export function showAlert(title: string, message?: string): void {
+  if (Platform.OS === 'web') {
+    window.alert(message ? `${title}\n\n${message}` : title);
+  } else {
+    Alert.alert(title, message);
+  }
+}
+
+// Cross-platform confirm dialog
+export function showConfirm(
+  title: string,
+  message: string,
+  onConfirm: () => void,
+  onCancel?: () => void,
+  confirmText = 'OK',
+  cancelText = 'Cancel'
+): void {
+  if (Platform.OS === 'web') {
+    if (window.confirm(`${title}\n\n${message}`)) {
+      onConfirm();
+    } else {
+      onCancel?.();
+    }
+  } else {
+    Alert.alert(title, message, [
+      { text: cancelText, style: 'cancel', onPress: onCancel },
+      { text: confirmText, style: 'destructive', onPress: onConfirm },
+    ]);
+  }
 }

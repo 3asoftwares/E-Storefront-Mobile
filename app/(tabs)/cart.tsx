@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, ActivityIndicator, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -7,6 +7,13 @@ import { faTrash, faPlus, faMinus, faShoppingCart, faShoppingBag, faTag, faTimes
 import { useCartStore, CartItem } from '../../src/store/cartStore';
 import { useValidateCoupon } from '../../src/lib/hooks';
 import { Colors } from '../../src/constants/theme';
+import { showAlert, showConfirm } from '../../src/utils/helpers';
+
+// Check if user is authenticated
+function useIsAuthenticated() {
+    const userProfile = useCartStore((state) => state.userProfile);
+    return !!userProfile;
+}
 
 // Cart Item Component
 function CartItemCard({ item }: { item: CartItem }) {
@@ -21,18 +28,18 @@ function CartItemCard({ item }: { item: CartItem }) {
         if (item.quantity > 1) {
             updateQuantity(item.productId, item.quantity - 1);
         } else {
-            Alert.alert('Remove Item', 'Are you sure you want to remove this item from your cart?', [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'Remove', style: 'destructive', onPress: () => removeFromCart(item.productId) },
-            ]);
+            showConfirm(
+                'Remove Item',
+                'Are you sure you want to remove this item from your cart?',
+                () => removeFromCart(item.productId),
+                undefined,
+                'Remove'
+            );
         }
     };
 
     const handleRemove = () => {
-        Alert.alert('Remove Item', 'Are you sure you want to remove this item from your cart?', [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Remove', style: 'destructive', onPress: () => removeFromCart(item.productId) },
-        ]);
+        removeFromCart(item.productId);
     };
 
     const itemTotal = item.price * item.quantity;
@@ -47,7 +54,7 @@ function CartItemCard({ item }: { item: CartItem }) {
                     {item.name}
                 </Text>
                 {item.variant && <Text style={styles.itemVariant}>{item.variant}</Text>}
-                <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
+                <Text style={styles.itemPrice}>₹{item.price.toFixed(2)}</Text>
                 <View style={styles.quantityContainer}>
                     <TouchableOpacity style={styles.quantityButton} onPress={handleDecrement}>
                         <FontAwesomeIcon icon={faMinus} size={12} color={Colors.light.text} />
@@ -59,7 +66,7 @@ function CartItemCard({ item }: { item: CartItem }) {
                 </View>
             </View>
             <View style={styles.itemActions}>
-                <Text style={styles.itemTotal}>${itemTotal.toFixed(2)}</Text>
+                <Text style={styles.itemTotal}>₹{itemTotal.toFixed(2)}</Text>
                 <TouchableOpacity onPress={handleRemove} style={styles.removeButton}>
                     <FontAwesomeIcon icon={faTrash} size={16} color={Colors.light.error} />
                 </TouchableOpacity>
@@ -75,22 +82,22 @@ function OrderSummary({ subtotal, discount, shipping, total }: { subtotal: numbe
             <Text style={styles.summaryTitle}>Order Summary</Text>
             <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Subtotal</Text>
-                <Text style={styles.summaryValue}>${subtotal.toFixed(2)}</Text>
+                <Text style={styles.summaryValue}>₹{subtotal.toFixed(2)}</Text>
             </View>
             {discount > 0 && (
                 <View style={styles.summaryRow}>
                     <Text style={styles.summaryLabel}>Discount</Text>
-                    <Text style={[styles.summaryValue, styles.discountValue]}>-${discount.toFixed(2)}</Text>
+                    <Text style={[styles.summaryValue, styles.discountValue]}>-₹{discount.toFixed(2)}</Text>
                 </View>
             )}
             <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Shipping</Text>
-                <Text style={styles.summaryValue}>{shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}</Text>
+                <Text style={styles.summaryValue}>{shipping === 0 ? 'Free' : `₹${shipping.toFixed(2)}`}</Text>
             </View>
             <View style={styles.summaryDivider} />
             <View style={styles.summaryRow}>
                 <Text style={styles.totalLabel}>Total</Text>
-                <Text style={styles.totalValue}>${total.toFixed(2)}</Text>
+                <Text style={styles.totalValue}>₹{total.toFixed(2)}</Text>
             </View>
         </View>
     );
@@ -126,7 +133,7 @@ export default function CartScreen() {
 
     const handleApplyCoupon = async () => {
         if (!couponCode.trim()) {
-            Alert.alert('Error', 'Please enter a coupon code');
+            showAlert('Error', 'Please enter a coupon code');
             return;
         }
 
@@ -140,12 +147,12 @@ export default function CartScreen() {
                     discountValue: result.discountValue,
                     discount: result.discount,
                 });
-                Alert.alert('Success', 'Coupon applied successfully!');
+                showAlert('Success', 'Coupon applied successfully!');
             } else {
-                Alert.alert('Invalid Coupon', result?.message || 'This coupon is not valid');
+                showAlert('Invalid Coupon', result?.message || 'This coupon is not valid');
             }
         } catch (err: any) {
-            Alert.alert('Error', err.message || 'Failed to validate coupon');
+            showAlert('Error', err.message || 'Failed to validate coupon');
         }
     };
 
@@ -155,13 +162,23 @@ export default function CartScreen() {
     };
 
     const handleClearCart = () => {
-        Alert.alert('Clear Cart', 'Are you sure you want to remove all items from your cart?', [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Clear', style: 'destructive', onPress: clearCart },
-        ]);
+        showConfirm(
+            'Clear Cart',
+            'Are you sure you want to remove all items from your cart?',
+            clearCart,
+            undefined,
+            'Clear'
+        );
     };
 
     const handleCheckout = () => {
+        // Check if user is authenticated
+        const userProfile = useCartStore.getState().userProfile;
+        if (!userProfile) {
+            // Redirect to login with cart as the return path
+            router.push('/login?redirect=/(tabs)/cart');
+            return;
+        }
         router.push('/checkout');
     };
 
@@ -212,51 +229,13 @@ export default function CartScreen() {
                 }
                 ListFooterComponent={
                     <View>
-                        {/* Coupon Section */}
-                        <View style={styles.couponSection}>
-                            <Text style={styles.couponTitle}>Have a coupon?</Text>
-                            {appliedCoupon ? (
-                                <View style={styles.appliedCoupon}>
-                                    <View style={styles.appliedCouponInfo}>
-                                        <Text style={styles.appliedCouponCode}>{appliedCoupon.code}</Text>
-                                        <Text style={styles.appliedCouponDiscount}>
-                                            {appliedCoupon.discountType?.toLowerCase() === 'percentage'
-                                                ? `${appliedCoupon.discountValue}% off`
-                                                : `$${appliedCoupon.discountValue} off`}
-                                        </Text>
-                                    </View>
-                                    <TouchableOpacity onPress={handleRemoveCoupon}>
-                                        <Text style={styles.removeCouponButton}>Remove</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            ) : (
-                                <View style={styles.couponInput}>
-                                    <TextInput
-                                        style={styles.couponTextInput}
-                                        placeholder='Enter coupon code'
-                                        value={couponCode}
-                                        onChangeText={setCouponCode}
-                                        autoCapitalize='characters'
-                                        placeholderTextColor='#9CA3AF'
-                                    />
-                                    <TouchableOpacity style={styles.applyCouponButton} onPress={handleApplyCoupon} disabled={isValidating}>
-                                        {isValidating ? (
-                                            <ActivityIndicator size='small' color='#FFFFFF' />
-                                        ) : (
-                                            <Text style={styles.applyCouponButtonText}>Apply</Text>
-                                        )}
-                                    </TouchableOpacity>
-                                </View>
-                            )}
-                        </View>
-
                         {/* Order Summary */}
                         <OrderSummary subtotal={subtotal} discount={discount} shipping={shipping} total={total} />
 
                         {/* Free Shipping Notice */}
                         {subtotal < 50 && (
                             <View style={styles.freeShippingNotice}>
-                                <Text style={styles.freeShippingText}>🚚 Add ${(50 - subtotal).toFixed(2)} more for free shipping!</Text>
+                                <Text style={styles.freeShippingText}>🚚 Add ₹{(50 - subtotal).toFixed(2)} more for free shipping!</Text>
                                 <View style={styles.progressBar}>
                                     <View style={[styles.progressFill, { width: `${Math.min((subtotal / 50) * 100, 100)}%` }]} />
                                 </View>
@@ -269,7 +248,7 @@ export default function CartScreen() {
             {/* Checkout Button */}
             <View style={styles.checkoutContainer}>
                 <TouchableOpacity style={styles.checkoutButton} onPress={handleCheckout}>
-                    <Text style={styles.checkoutButtonText}>Proceed to Checkout • ${total.toFixed(2)}</Text>
+                    <Text style={styles.checkoutButtonText}>Proceed to Checkout • ₹{total.toFixed(2)}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.continueShoppingLink} onPress={() => router.push('/products')}>
                     <Text style={styles.continueShoppingLinkText}>Continue Shopping</Text>
@@ -282,7 +261,6 @@ export default function CartScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        marginBottom: 72,
         backgroundColor: '#F9FAFB',
     },
     header: {
@@ -384,68 +362,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#FEF2F2',
         borderRadius: 8,
     },
-    couponSection: {
-        backgroundColor: Colors.light.background,
-        borderRadius: 16,
-        padding: 18,
-        marginTop: 8,
-    },
-    couponTitle: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#111827',
-        marginBottom: 12,
-    },
-    couponInput: {
-        flexDirection: 'row',
-    },
-    couponTextInput: {
-        flex: 1,
-        height: 44,
-        backgroundColor: '#F3F4F6',
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        fontSize: 14,
-        color: '#111827',
-    },
-    applyCouponButton: {
-        marginLeft: 12,
-        paddingHorizontal: 20,
-        backgroundColor: '#4F46E5',
-        borderRadius: 8,
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: 44,
-    },
-    applyCouponButtonText: {
-        color: '#FFFFFF',
-        fontWeight: '600',
-        fontSize: 14,
-    },
-    appliedCoupon: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        backgroundColor: '#ECFDF5',
-        padding: 12,
-        borderRadius: 8,
-    },
-    appliedCouponInfo: {},
-    appliedCouponCode: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        color: '#059669',
-    },
-    appliedCouponDiscount: {
-        fontSize: 12,
-        color: '#059669',
-        marginTop: 2,
-    },
-    removeCouponButton: {
-        fontSize: 14,
-        color: '#EF4444',
-        fontWeight: '500',
-    },
     orderSummary: {
         backgroundColor: '#FFFFFF',
         borderRadius: 12,
@@ -514,6 +430,7 @@ const styles = StyleSheet.create({
     },
     checkoutContainer: {
         padding: 16,
+        paddingBottom: Platform.OS === 'ios' ? 100 : 84,
         backgroundColor: '#FFFFFF',
         borderTopWidth: 1,
         borderTopColor: '#E5E7EB',

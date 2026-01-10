@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Alert, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Dimensions, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -7,6 +7,7 @@ import { faHeart, faShoppingCart, faTimes, faShoppingBag, faTrash } from '@forta
 import { faHeart as faHeartOutline } from '@fortawesome/free-regular-svg-icons';
 import { useCartStore, WishlistItem } from '../../src/store/cartStore';
 import { Colors } from '../../src/constants/theme';
+import { showAlert, showConfirm } from '../../src/utils/helpers';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width - 32;
@@ -28,14 +29,11 @@ function WishlistItemCard({ item }: { item: WishlistItem }) {
             quantity: 1,
             variant: undefined,
         });
-        Alert.alert('Added to Cart', `${item.name} has been added to your cart`);
+        showAlert('Added to Cart', `${item.name} has been added to your cart`);
     };
 
     const handleRemove = () => {
-        Alert.alert('Remove from Wishlist', `Are you sure you want to remove ${item.name} from your wishlist?`, [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Remove', style: 'destructive', onPress: () => removeFromWishlist(itemId) },
-        ]);
+        removeFromWishlist(itemId);
     };
 
     return (
@@ -46,7 +44,7 @@ function WishlistItemCard({ item }: { item: WishlistItem }) {
                     <Text style={styles.itemName} numberOfLines={2}>
                         {item.name}
                     </Text>
-                    <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
+                    <Text style={styles.itemPrice}>₹{item.price.toFixed(2)}</Text>
                     <View style={styles.itemActions}>
                         <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart}>
                             <FontAwesomeIcon icon={faShoppingCart} size={14} color={Colors.light.primary} />
@@ -79,14 +77,17 @@ export default function WishlistScreen() {
                 variant: undefined,
             });
         });
-        Alert.alert('Success', 'All items have been added to your cart');
+        showAlert('Success', 'All items have been added to your cart');
     };
 
     const handleClearWishlist = () => {
-        Alert.alert('Clear Wishlist', 'Are you sure you want to remove all items from your wishlist?', [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Clear', style: 'destructive', onPress: clearWishlist },
-        ]);
+        showConfirm(
+            'Clear Wishlist',
+            'Are you sure you want to remove all items from your wishlist?',
+            clearWishlist,
+            undefined,
+            'Clear'
+        );
     };
 
     if (wishlist.length === 0) {
@@ -202,6 +203,7 @@ const styles = StyleSheet.create({
     },
     listContainer: {
         padding: 16,
+        paddingBottom: 16,
     },
     wishlistCard: {
         backgroundColor: Colors.light.background,
@@ -279,7 +281,7 @@ const styles = StyleSheet.create({
     },
     bottomActions: {
         padding: 16,
-        paddingBottom: 24,
+        paddingBottom: Platform.OS === 'ios' ? 100 : 84,
         backgroundColor: Colors.light.background,
         borderTopWidth: 1,
         borderTopColor: Colors.light.border,

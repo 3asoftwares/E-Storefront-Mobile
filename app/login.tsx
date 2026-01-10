@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, Link } from 'expo-router';
+import { router, Link, useLocalSearchParams } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faArrowLeft, faEnvelope, faLock, faEye, faEyeSlash, faShoppingBag } from '@fortawesome/free-solid-svg-icons';
 import { faGoogle, faApple } from '@fortawesome/free-brands-svg-icons';
@@ -9,6 +9,7 @@ import { useLogin } from '../src/lib/hooks';
 import { Colors } from '../src/constants/theme';
 
 export default function LoginScreen() {
+    const { redirect } = useLocalSearchParams<{ redirect?: string }>();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -40,7 +41,12 @@ export default function LoginScreen() {
 
         try {
             await login({ email: email.trim().toLowerCase(), password });
-            router.replace('/(tabs)');
+            // Redirect to specified path or default to tabs
+            if (redirect) {
+                router.replace(redirect as any);
+            } else {
+                router.replace('/(tabs)');
+            }
         } catch (err: any) {
             const message = err?.message || 'Login failed. Please try again.';
             Alert.alert('Login Failed', message);

@@ -75,7 +75,7 @@ function OrderCard({ order }: { order: any }) {
         </View>
         <View style={styles.orderInfo}>
           <Text style={styles.orderInfoLabel}>Total</Text>
-          <Text style={styles.orderInfoValue}>${order.total?.toFixed(2) || '0.00'}</Text>
+          <Text style={styles.orderInfoValue}>₹{order.total?.toFixed(2) || '0.00'}</Text>
         </View>
         <View style={styles.orderInfo}>
           <Text style={styles.orderInfoLabel}>Payment</Text>

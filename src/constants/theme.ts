@@ -316,8 +316,8 @@ export const API_CONFIG = {
 export const APP_CONFIG = {
     name: '3A Storefront',
     version: '1.0.0',
-    currency: 'USD',
-    currencySymbol: '$',
+    currency: 'INR',
+    currencySymbol: '₹',
     itemsPerPage: 20,
     maxCartItems: 99,
     freeShippingThreshold: 50,

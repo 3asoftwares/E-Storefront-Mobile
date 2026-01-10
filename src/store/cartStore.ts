@@ -174,11 +174,18 @@ export const useCartStore = create<CartStore>()(
             // Wishlist actions
             addToWishlist: (item) =>
                 set((state) => {
-                    const itemProductId = item.productId || item.id;
+                    const itemProductId = item.productId || item.id || '';
                     const exists = state.wishlist.find((w) => w.productId === itemProductId || w.id === itemProductId);
                     if (exists) return state;
+                    const newItem: WishlistItem = {
+                        productId: itemProductId,
+                        name: item.name,
+                        price: item.price,
+                        image: item.image,
+                        addedAt: Date.now(),
+                    };
                     return {
-                        wishlist: [...state.wishlist, { ...item, productId: itemProductId, addedAt: Date.now() }],
+                        wishlist: [...state.wishlist, newItem],
                     };
                 }),
 
@@ -189,17 +196,18 @@ export const useCartStore = create<CartStore>()(
 
             toggleWishlistItem: (item) =>
                 set((state) => {
-                    const exists = state.wishlist.find((w) => w.productId === item.id);
+                    const itemId = item.id || '';
+                    const exists = state.wishlist.find((w) => w.productId === itemId);
                     if (exists) {
                         return {
-                            wishlist: state.wishlist.filter((w) => w.productId !== item.id),
+                            wishlist: state.wishlist.filter((w) => w.productId !== itemId),
                         };
                     }
                     return {
                         wishlist: [
                             ...state.wishlist,
                             {
-                                productId: item.id,
+                                productId: itemId,
                                 name: item.name,
                                 price: item.price,
                                 image: item.image,

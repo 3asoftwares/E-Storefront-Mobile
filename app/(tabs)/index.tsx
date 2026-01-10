@@ -12,6 +12,7 @@ import {
     Dimensions,
     Animated,
     Pressable,
+    Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -35,6 +36,7 @@ import {
     faGem,
     faBlender,
     faCheck,
+    faClock,
 } from '@fortawesome/free-solid-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faHeart as faHeartRegular } from '@fortawesome/free-regular-svg-icons';
@@ -163,11 +165,11 @@ function ProductCard({ product, index = 0 }: { product: any; index?: number }) {
                     <View style={styles.priceContainer}>
                         {hasDiscount ? (
                             <>
-                                <Text style={styles.salePrice}>${product.salePrice.toFixed(2)}</Text>
-                                <Text style={styles.originalPrice}>${product.price.toFixed(2)}</Text>
+                                <Text style={styles.salePrice}>₹{product.salePrice.toFixed(2)}</Text>
+                                <Text style={styles.originalPrice}>₹{product.price.toFixed(2)}</Text>
                             </>
                         ) : (
-                            <Text style={styles.price}>${product.price.toFixed(2)}</Text>
+                            <Text style={styles.price}>₹{product.price.toFixed(2)}</Text>
                         )}
                     </View>
                     {product.rating && (
@@ -338,18 +340,27 @@ export default function HomeScreen() {
         isRefetching: isRefetchingProducts,
     } = useProducts(1, 8, { featured: true });
 
+    // New Arrivals - sorted by newest
+    const {
+        data: newArrivalsData,
+        isLoading: newArrivalsLoading,
+        refetch: refetchNewArrivals,
+    } = useProducts(1, 8, { sortBy: 'createdAt', sortOrder: 'DESC' });
+
     const { data: categories, isLoading: categoriesLoading, refetch: refetchCategories } = useCategories();
 
     const addToRecentlyViewed = useCartStore((state) => state.addToRecentlyViewed);
     const recentlyViewed = useCartStore((state) => state.recentlyViewed);
 
     const products = productsData?.products || [];
+    const newArrivals = newArrivalsData?.products || [];
     const isLoading = productsLoading || categoriesLoading;
 
     const onRefresh = useCallback(() => {
         refetchProducts();
         refetchCategories();
-    }, [refetchProducts, refetchCategories]);
+        refetchNewArrivals();
+    }, [refetchProducts, refetchCategories, refetchNewArrivals]);
 
     if (isLoading && !products.length) {
         return (
@@ -401,6 +412,18 @@ export default function HomeScreen() {
                     )}
                 </View>
 
+                {/* New Arrivals Section */}
+                {newArrivals.length > 0 && (
+                    <View style={styles.newArrivalsSection}>
+                        <SectionHeader title='New Arrivals' subtitle='Fresh from our collection' icon={faClock} onSeeAll={() => router.push('/products')} />
+                        <View style={styles.productsGrid}>
+                            {newArrivals.map((product: any, index: number) => (
+                                <ProductCard key={`new-${product.id}`} product={product} index={index} />
+                            ))}
+                        </View>
+                    </View>
+                )}
+
                 {recentlyViewed.length > 0 && (
                     <View style={styles.section}>
                         <SectionHeader title='Recently Viewed' />
@@ -415,7 +438,7 @@ export default function HomeScreen() {
                                     <Text style={styles.recentlyViewedName} numberOfLines={1}>
                                         {item.name}
                                     </Text>
-                                    <Text style={styles.recentlyViewedPrice}>${item.price.toFixed(2)}</Text>
+                                    <Text style={styles.recentlyViewedPrice}>₹{item.price.toFixed(2)}</Text>
                                 </TouchableOpacity>
                             )}
                             contentContainerStyle={styles.recentlyViewedList}
@@ -431,9 +454,6 @@ export default function HomeScreen() {
                     </View>
                     <Text style={styles.promoText}>Get 20% off on your first order with code FIRST20</Text>
                 </View>
-
-                {/* Bottom Spacing */}
-                <View style={{ height: 20 }} />
             </ScrollView>
         </SafeAreaView>
     );
@@ -446,12 +466,17 @@ const styles = StyleSheet.create({
     },
     scrollView: {
         flex: 1,
+        paddingBottom: Platform.OS === 'ios' ? 100 : 84,
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: Colors.light.background,
+    },
+    newArrivalsSection: {
+        marginTop: Spacing['2xl'],
+        marginBottom: Spacing['2xl'],
     },
     loadingText: {
         marginTop: 16,
@@ -811,7 +836,7 @@ const styles = StyleSheet.create({
     // Promo Banner Styles
     promoBanner: {
         marginHorizontal: Spacing.base,
-        marginBottom: Spacing['5xl'],
+        marginBottom: -Spacing['5xl'],
         padding: Spacing.xl,
         borderRadius: BorderRadius.xl,
         alignItems: 'center',

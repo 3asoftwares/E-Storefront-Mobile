@@ -127,6 +127,7 @@ export const GET_ME_QUERY = gql`
       id
       name
       email
+      phone
       role
       isActive
       emailVerified
@@ -159,6 +160,9 @@ export const GET_ORDERS_BY_CUSTOMER_QUERY = gql`
       paymentStatus
       paymentMethod
       shippingAddress {
+        name
+        mobile
+        email
         street
         city
         state
@@ -189,11 +193,16 @@ export const GET_ORDER_QUERY = gql`
       subtotal
       tax
       shipping
+      discount
+      couponCode
       total
       orderStatus
       paymentStatus
       paymentMethod
       shippingAddress {
+        name
+        mobile
+        email
         street
         city
         state
@@ -268,6 +277,17 @@ export const CREATE_ORDER_MUTATION = gql`
         createdAt
       }
       orderCount
+    }
+  }
+`;
+
+export const CANCEL_ORDER_MUTATION = gql`
+  mutation CancelOrder($id: ID!) {
+    cancelOrder(id: $id) {
+      id
+      orderNumber
+      orderStatus
+      updatedAt
     }
   }
 `;
@@ -379,9 +399,78 @@ export const ADD_ADDRESS_MUTATION = gql`
   }
 `;
 
-export const UPDATE_PROFILE_MUTATION = gql`
-  mutation UpdateProfile($input: UpdateProfileInput!) {
-    updateProfile(input: $input) {
+export const UPDATE_ADDRESS_MUTATION = gql`
+  mutation UpdateAddress($id: ID!, $input: UpdateAddressInput!) {
+    updateAddress(id: $id, input: $input) {
+      success
+      message
+      address {
+        id
+        userId
+        name
+        mobile
+        email
+        street
+        city
+        state
+        zip
+        country
+        isDefault
+        label
+        createdAt
+        updatedAt
+      }
+    }
+  }
+`;
+
+export const DELETE_ADDRESS_MUTATION = gql`
+  mutation DeleteAddress($id: ID!) {
+    deleteAddress(id: $id) {
+      success
+      message
+    }
+  }
+`;
+
+export const SET_DEFAULT_ADDRESS_MUTATION = gql`
+  mutation SetDefaultAddress($id: ID!) {
+    setDefaultAddress(id: $id) {
+      success
+      message
+      address {
+        id
+        userId
+        name
+        mobile
+        email
+        street
+        city
+        state
+        zip
+        country
+        isDefault
+        label
+        createdAt
+        updatedAt
+      }
+    }
+  }
+`;
+
+// ============== EMAIL VERIFICATION MUTATIONS ==============
+export const SEND_VERIFICATION_EMAIL_MUTATION = gql`
+  mutation SendVerificationEmail($source: String) {
+    sendVerificationEmail(source: $source) {
+      success
+      message
+    }
+  }
+`;
+
+export const VERIFY_EMAIL_MUTATION = gql`
+  mutation VerifyEmail {
+    verifyEmail {
       success
       message
       user {
@@ -393,6 +482,65 @@ export const UPDATE_PROFILE_MUTATION = gql`
         emailVerified
         createdAt
       }
+    }
+  }
+`;
+
+// ============== PASSWORD RESET MUTATIONS/QUERIES ==============
+export const FORGOT_PASSWORD_MUTATION = gql`
+  mutation ForgotPassword($email: String!, $domain: String!) {
+    forgotPassword(email: $email, domain: $domain) {
+      success
+      message
+      resetToken
+      resetUrl
+    }
+  }
+`;
+
+export const RESET_PASSWORD_MUTATION = gql`
+  mutation ResetPassword($token: String!, $password: String!, $confirmPassword: String!) {
+    resetPassword(token: $token, password: $password, confirmPassword: $confirmPassword) {
+      success
+      message
+    }
+  }
+`;
+
+export const VALIDATE_RESET_TOKEN_QUERY = gql`
+  query ValidateResetToken($token: String!) {
+    validateResetToken(token: $token) {
+      success
+      message
+      email
+    }
+  }
+`;
+
+export const UPDATE_PROFILE_MUTATION = gql`
+  mutation UpdateProfile($input: UpdateProfileInput!) {
+    updateProfile(input: $input) {
+      success
+      message
+      user {
+        id
+        name
+        email
+        phone
+        role
+        isActive
+        emailVerified
+        createdAt
+      }
+    }
+  }
+`;
+
+export const CHANGE_PASSWORD_MUTATION = gql`
+  mutation ChangePassword($input: ChangePasswordInput!) {
+    changePassword(input: $input) {
+      success
+      message
     }
   }
 `;
@@ -413,5 +561,14 @@ export const GQL_QUERIES = {
   VALIDATE_COUPON_QUERY,
   GET_MY_ADDRESSES_QUERY,
   ADD_ADDRESS_MUTATION,
+  UPDATE_ADDRESS_MUTATION,
+  DELETE_ADDRESS_MUTATION,
+  SET_DEFAULT_ADDRESS_MUTATION,
   UPDATE_PROFILE_MUTATION,
+  CHANGE_PASSWORD_MUTATION,
+  SEND_VERIFICATION_EMAIL_MUTATION,
+  VERIFY_EMAIL_MUTATION,
+  FORGOT_PASSWORD_MUTATION,
+  RESET_PASSWORD_MUTATION,
+  VALIDATE_RESET_TOKEN_QUERY,
 };

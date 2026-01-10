@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Stack } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faTimes, faCheck, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
-import { useAddresses, useAddAddress } from '../src/lib/hooks';
+import { useAddresses, useAddAddress, useUpdateAddress, useDeleteAddress, useSetDefaultAddress } from '../src/lib/hooks';
 
 // Address Card Component
 function AddressCard({
@@ -266,18 +266,27 @@ function AddressModal({
 export default function AddressesScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingAddress, setEditingAddress] = useState<any>(null);
-  const [defaultAddressId, setDefaultAddressId] = useState<string | null>(null);
 
   const { data: addresses = [], isLoading, refetch } = useAddresses();
   const { addAddress, isLoading: isAdding } = useAddAddress();
+  const { updateAddress, isLoading: isUpdating } = useUpdateAddress();
+  const { deleteAddress, isLoading: isDeleting } = useDeleteAddress();
+  const { setDefaultAddress, isLoading: isSettingDefault } = useSetDefaultAddress();
 
-  const handleAddAddress = async (data: any) => {
+  const handleSaveAddress = async (data: any) => {
     try {
-      await addAddress(data);
+      if (editingAddress) {
+        // Update existing address
+        await updateAddress({ id: editingAddress.id, input: data });
+        Alert.alert('Success', 'Address updated successfully');
+      } else {
+        // Add new address
+        await addAddress(data);
+        Alert.alert('Success', 'Address added successfully');
+      }
       setModalVisible(false);
       setEditingAddress(null);
       refetch();
-      Alert.alert('Success', 'Address saved successfully');
     } catch (err: any) {
       Alert.alert('Error', err.message || 'Failed to save address');
     }
@@ -294,18 +303,27 @@ export default function AddressesScreen() {
       {
         text: 'Delete',
         style: 'destructive',
-        onPress: () => {
-          // Delete logic here
-          Alert.alert('Address deleted');
-          refetch();
+        onPress: async () => {
+          try {
+            await deleteAddress(addressId);
+            Alert.alert('Success', 'Address deleted successfully');
+            refetch();
+          } catch (err: any) {
+            Alert.alert('Error', err.message || 'Failed to delete address');
+          }
         },
       },
     ]);
   };
 
-  const handleSetDefault = (addressId: string) => {
-    setDefaultAddressId(addressId);
-    Alert.alert('Default Address', 'Default address updated');
+  const handleSetDefault = async (addressId: string) => {
+    try {
+      await setDefaultAddress(addressId);
+      Alert.alert('Success', 'Default address updated');
+      refetch();
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Failed to set default address');
+    }
   };
 
   return (
@@ -350,7 +368,7 @@ export default function AddressesScreen() {
           renderItem={({ item }) => (
             <AddressCard
               address={item}
-              isDefault={item.id === defaultAddressId || item.isDefault}
+              isDefault={item.isDefault}
               onSetDefault={() => handleSetDefault(item.id)}
               onEdit={() => handleEditAddress(item)}
               onDelete={() => handleDeleteAddress(item.id)}
@@ -368,9 +386,9 @@ export default function AddressesScreen() {
           setModalVisible(false);
           setEditingAddress(null);
         }}
-        onSave={handleAddAddress}
+        onSave={handleSaveAddress}
         initialData={editingAddress}
-        isLoading={isAdding}
+        isLoading={isAdding || isUpdating}
       />
     </SafeAreaView>
   );

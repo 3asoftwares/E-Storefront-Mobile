@@ -87,9 +87,9 @@ export function ProductCard({ product, variant = 'grid', onPress }: ProductCardP
           </Text>
           {product.category && <Text style={styles.category}>{product.category.name}</Text>}
           <View style={styles.priceRow}>
-            <Text style={styles.price}>${product.price.toFixed(2)}</Text>
+            <Text style={styles.price}>₹{product.price.toFixed(2)}</Text>
             {product.compareAtPrice && (
-              <Text style={styles.comparePrice}>${product.compareAtPrice.toFixed(2)}</Text>
+              <Text style={styles.comparePrice}>₹{product.compareAtPrice.toFixed(2)}</Text>
             )}
           </View>
           {product.rating && (

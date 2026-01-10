@@ -4,12 +4,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Stack } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import { useForgotPassword } from '../src/lib/hooks';
 
 export default function ForgotPasswordScreen() {
     const [email, setEmail] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
     const [emailSent, setEmailSent] = useState(false);
     const [error, setError] = useState('');
+
+    const { forgotPassword, isLoading } = useForgotPassword();
 
     const validateEmail = () => {
         if (!email.trim()) {
@@ -27,23 +29,19 @@ export default function ForgotPasswordScreen() {
     const handleSubmit = async () => {
         if (!validateEmail()) return;
 
-        setIsLoading(true);
-
         try {
-            // Simulate API call
-            await new Promise((resolve) => setTimeout(resolve, 1500));
+            const result = await forgotPassword({ 
+                email: email.trim().toLowerCase(), 
+                domain: 'https://store.3asoftwares.com' // Mobile app uses storefront domain for password reset
+            });
 
-            // In a real app, you would call your API here
-            // await apolloClient.mutate({
-            //   mutation: FORGOT_PASSWORD_MUTATION,
-            //   variables: { email: email.trim().toLowerCase() },
-            // });
-
-            setEmailSent(true);
+            if (result.success) {
+                setEmailSent(true);
+            } else {
+                Alert.alert('Error', result.message || 'Failed to send reset email. Please try again.');
+            }
         } catch (err: any) {
             Alert.alert('Error', err.message || 'Failed to send reset email. Please try again.');
-        } finally {
-            setIsLoading(false);
         }
     };
 

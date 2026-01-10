@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,13 +7,15 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faArrowLeft, faClipboardList, faGear, faTruck, faCircleCheck, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faClipboardList, faGear, faTruck, faCircleCheck, faTimesCircle, faCartShopping } from '@fortawesome/free-solid-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import { useOrder } from '../../src/lib/hooks';
+import { useOrder, useCancelOrder } from '../../src/lib/hooks';
+import { faProductHunt } from '@fortawesome/free-brands-svg-icons';
 
 // Order Status Badge
 function OrderStatusBadge({ status }: { status: string }) {
@@ -100,22 +102,18 @@ function OrderTimeline({ status }: { status: string }) {
 function OrderItemCard({ item }: { item: any }) {
   return (
     <View style={styles.orderItem}>
-      <Image
-        source={{ uri: item.image || 'https://via.placeholder.com/80' }}
-        style={styles.itemImage}
-        resizeMode="cover"
-      />
+      <FontAwesomeIcon icon={faCartShopping} style={styles.itemImage} />
       <View style={styles.itemDetails}>
         <Text style={styles.itemName} numberOfLines={2}>
           {item.productName || item.name || 'Product'}
         </Text>
         {item.variant && <Text style={styles.itemVariant}>{item.variant}</Text>}
         <View style={styles.itemPriceRow}>
-          <Text style={styles.itemPrice}>${item.price?.toFixed(2)}</Text>
+          <Text style={styles.itemPrice}>₹{item.price?.toFixed(2)}</Text>
           <Text style={styles.itemQuantity}>× {item.quantity}</Text>
         </View>
       </View>
-      <Text style={styles.itemTotal}>${((item.price || 0) * item.quantity).toFixed(2)}</Text>
+      <Text style={styles.itemTotal}>₹{((item.price || 0) * item.quantity).toFixed(2)}</Text>
     </View>
   );
 }
@@ -123,7 +121,31 @@ function OrderItemCard({ item }: { item: any }) {
 // Main Order Detail Screen
 export default function OrderDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { data: order, isLoading, error } = useOrder(id || '');
+  const { data: order, isLoading, error, refetch } = useOrder(id || '');
+  const { cancelOrder, isLoading: isCancelling } = useCancelOrder();
+
+  const handleCancelOrder = () => {
+    Alert.alert(
+      'Cancel Order',
+      'Are you sure you want to cancel this order? This action cannot be undone.',
+      [
+        { text: 'No, Keep Order', style: 'cancel' },
+        {
+          text: 'Yes, Cancel Order',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await cancelOrder(id || '');
+              refetch();
+              Alert.alert('Order Cancelled', 'Your order has been successfully cancelled.');
+            } catch (err) {
+              Alert.alert('Error', 'Failed to cancel order. Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  };
 
   if (isLoading) {
     return (
@@ -218,15 +240,20 @@ export default function OrderDetailScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Shipping Address</Text>
             <View style={styles.addressCard}>
-              <Text style={styles.addressName}>{order.shippingAddress.fullName}</Text>
-              <Text style={styles.addressLine}>{order.shippingAddress.address}</Text>
+              {order.shippingAddress.name && (
+                <Text style={styles.addressName}>{order.shippingAddress.name}</Text>
+              )}
+              <Text style={styles.addressLine}>{order.shippingAddress.street}</Text>
               <Text style={styles.addressLine}>
                 {order.shippingAddress.city}, {order.shippingAddress.state}{' '}
-                {order.shippingAddress.zipCode}
+                {order.shippingAddress.zip || order.shippingAddress.zipCode}
               </Text>
               <Text style={styles.addressLine}>{order.shippingAddress.country}</Text>
-              {order.shippingAddress.phone && (
-                <Text style={styles.addressPhone}>📞 {order.shippingAddress.phone}</Text>
+              {order.shippingAddress.mobile && (
+                <Text style={styles.addressPhone}>📞 {order.shippingAddress.mobile}</Text>
+              )}
+              {order.shippingAddress.email && (
+                <Text style={styles.addressEmail}>✉️ {order.shippingAddress.email}</Text>
               )}
             </View>
           </View>
@@ -251,31 +278,31 @@ export default function OrderDetailScreen() {
           <View style={styles.summaryCard}>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Subtotal</Text>
-              <Text style={styles.summaryValue}>${order.subtotal?.toFixed(2) || '0.00'}</Text>
+              <Text style={styles.summaryValue}>₹{order.subtotal?.toFixed(2) || '0.00'}</Text>
             </View>
             {order.discount > 0 && (
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Discount</Text>
                 <Text style={[styles.summaryValue, styles.discountValue]}>
-                  -${order.discount?.toFixed(2)}
+                  -₹{order.discount?.toFixed(2)}
                 </Text>
               </View>
             )}
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Shipping</Text>
               <Text style={styles.summaryValue}>
-                {order.shipping === 0 ? 'Free' : `$${order.shipping?.toFixed(2) || '0.00'}`}
+                {order.shipping === 0 ? 'Free' : `₹${order.shipping?.toFixed(2) || '0.00'}`}
               </Text>
             </View>
             {order.tax > 0 && (
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Tax</Text>
-                <Text style={styles.summaryValue}>${order.tax?.toFixed(2)}</Text>
+                <Text style={styles.summaryValue}>₹{order.tax?.toFixed(2)}</Text>
               </View>
             )}
             <View style={[styles.summaryRow, styles.totalRow]}>
               <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalValue}>${order.total?.toFixed(2) || '0.00'}</Text>
+              <Text style={styles.totalValue}>₹{order.total?.toFixed(2) || '0.00'}</Text>
             </View>
           </View>
         </View>
@@ -285,6 +312,19 @@ export default function OrderDetailScreen() {
           {order.orderStatus === 'delivered' && (
             <TouchableOpacity style={styles.actionButton}>
               <Text style={styles.actionButtonText}>Write a Review</Text>
+            </TouchableOpacity>
+          )}
+          {(order.orderStatus === 'pending' || order.orderStatus === 'processing') && (
+            <TouchableOpacity
+              style={[styles.cancelButton, isCancelling && styles.disabledButton]}
+              onPress={handleCancelOrder}
+              disabled={isCancelling}
+            >
+              {isCancelling ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text style={styles.cancelButtonText}>Cancel Order</Text>
+              )}
             </TouchableOpacity>
           )}
           <TouchableOpacity
@@ -470,9 +510,11 @@ const styles = StyleSheet.create({
     borderBottomColor: '#F3F4F6',
   },
   itemImage: {
-    width: 70,
-    height: 70,
+    width: 50,
+    height: 50,
+    padding: 10,
     borderRadius: 8,
+    color: '#9CA3AF',
     backgroundColor: '#F3F4F6',
   },
   itemDetails: {
@@ -530,6 +572,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#374151',
     marginTop: 8,
+  },
+  addressEmail: {
+    fontSize: 14,
+    color: '#374151',
+    marginTop: 4,
   },
   paymentCard: {
     backgroundColor: '#F9FAFB',
@@ -593,6 +640,21 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  cancelButton: {
+    backgroundColor: '#DC2626',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  cancelButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  disabledButton: {
+    opacity: 0.6,
   },
   supportButton: {
     backgroundColor: '#F3F4F6',

@@ -20,6 +20,7 @@ interface Product {
     compareAtPrice?: number;
     images?: string[];
     image?: string;
+    imageUrl?: string;
     rating?: number;
     reviewCount?: number;
     stock?: number;

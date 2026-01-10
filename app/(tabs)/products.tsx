@@ -18,12 +18,13 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faSearch, faSliders, faTimes, faHeart as faHeartSolid, faStar, faShoppingCart, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { faHeart as faHeartRegular } from '@fortawesome/free-regular-svg-icons';
-import { useProducts, useCategories } from '../../src/lib/hooks';
+import { useInfiniteProducts, useCategories } from '../../src/lib/hooks';
 import { useCartStore } from '../../src/store/cartStore';
 import { Colors } from '../../src/constants/theme';
 
 const { width } = Dimensions.get('window');
 const PRODUCT_CARD_WIDTH = (width - 48) / 2;
+const TAB_BAR_HEIGHT = 80; // Height of bottom tab bar + safe area
 
 // Product Card Component
 function ProductCard({ product }: { product: any }) {
@@ -80,11 +81,11 @@ function ProductCard({ product }: { product: any }) {
                 <View style={styles.priceContainer}>
                     {hasDiscount ? (
                         <>
-                            <Text style={styles.salePrice}>${product.salePrice.toFixed(2)}</Text>
-                            <Text style={styles.originalPrice}>${product.price.toFixed(2)}</Text>
+                            <Text style={styles.salePrice}>₹{product.salePrice.toFixed(2)}</Text>
+                            <Text style={styles.originalPrice}>₹{product.price.toFixed(2)}</Text>
                         </>
                     ) : (
-                        <Text style={styles.price}>${product.price.toFixed(2)}</Text>
+                        <Text style={styles.price}>₹{product.price.toFixed(2)}</Text>
                     )}
                 </View>
                 {product.rating && (
@@ -236,7 +237,6 @@ export default function ProductsScreen() {
     const params = useLocalSearchParams();
     const categoryFromUrl = (params.category as string) || '';
 
-    const [page, setPage] = useState(1);
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [selectedCategory, setSelectedCategory] = useState(categoryFromUrl);
@@ -247,7 +247,6 @@ export default function ProductsScreen() {
     // Sync category from URL params
     useEffect(() => {
         setSelectedCategory(categoryFromUrl);
-        setPage(1);
     }, [categoryFromUrl]);
 
     // Debounce search
@@ -255,7 +254,6 @@ export default function ProductsScreen() {
         setSearch(text);
         const timer = setTimeout(() => {
             setDebouncedSearch(text);
-            setPage(1);
         }, 500);
         return () => clearTimeout(timer);
     }, []);
@@ -268,25 +266,34 @@ export default function ProductsScreen() {
             minPrice: priceRange.min ? parseFloat(priceRange.min) : undefined,
             maxPrice: priceRange.max ? parseFloat(priceRange.max) : undefined,
             sortBy: sortField,
-            sortOrder: sortOrder?.toUpperCase(),
+            sortOrder: sortOrder,
         };
     }, [debouncedSearch, selectedCategory, sortBy, priceRange]);
 
-    const { data: productsData, isLoading, refetch, isRefetching, isFetching } = useProducts(page, 20, filters);
+    const {
+        data,
+        isLoading,
+        refetch,
+        isRefetching,
+        isFetchingNextPage,
+        hasNextPage,
+        fetchNextPage,
+    } = useInfiniteProducts(20, filters);
 
     const { data: categories = [] } = useCategories();
 
-    const products = productsData?.products || [];
-    const totalPages = productsData?.pagination?.totalPages || 1;
+    // Flatten all pages into a single array
+    const products = useMemo(() => {
+        return data?.pages?.flatMap((page) => page?.products || []) || [];
+    }, [data]);
 
-    const handleLoadMore = () => {
-        if (page < totalPages && !isFetching) {
-            setPage((prev) => prev + 1);
+    const handleLoadMore = useCallback(() => {
+        if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
         }
-    };
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
     const handleApplyFilters = () => {
-        setPage(1);
         setFilterModalVisible(false);
         refetch();
     };
@@ -295,7 +302,6 @@ export default function ProductsScreen() {
         setSelectedCategory('');
         setSortBy('createdAt_desc');
         setPriceRange({ min: '', max: '' });
-        setPage(1);
     };
 
     const activeFiltersCount = useMemo(() => {
@@ -307,10 +313,11 @@ export default function ProductsScreen() {
     }, [selectedCategory, priceRange, sortBy]);
 
     const renderFooter = () => {
-        if (!isFetching || page === 1) return null;
+        if (!isFetchingNextPage) return <View style={{ height: TAB_BAR_HEIGHT }} />;
         return (
             <View style={styles.loadingFooter}>
                 <ActivityIndicator size='small' color='#4F46E5' />
+                <Text style={styles.loadingMoreText}>Loading more...</Text>
             </View>
         );
     };
@@ -376,7 +383,7 @@ export default function ProductsScreen() {
             )}
 
             {/* Products List */}
-            {isLoading && page === 1 ? (
+            {isLoading ? (
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size='large' color='#4F46E5' />
                     <Text style={styles.loadingText}>Loading products...</Text>
@@ -400,21 +407,19 @@ export default function ProductsScreen() {
                 <FlatList
                     data={products}
                     numColumns={2}
-                    keyExtractor={(item) => item.id}
+                    keyExtractor={(item, index) => `${item.id}-${index}`}
                     renderItem={({ item }) => <ProductCard product={item} />}
                     contentContainerStyle={styles.productsList}
                     columnWrapperStyle={styles.productsRow}
                     showsVerticalScrollIndicator={false}
                     onEndReached={handleLoadMore}
-                    onEndReachedThreshold={0.5}
+                    onEndReachedThreshold={0.3}
                     ListFooterComponent={renderFooter}
                     refreshControl={
                         <RefreshControl
-                            refreshing={isRefetching && page === 1}
-                            onRefresh={() => {
-                                setPage(1);
-                                refetch();
-                            }}
+                            refreshing={isRefetching}
+                            onRefresh={() => refetch()}
+                            tintColor='#4F46E5'
                         />
                     }
                 />
@@ -440,7 +445,6 @@ export default function ProductsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        marginBottom: 56,
         backgroundColor: Colors.light.backgroundSecondary,
     },
     searchContainer: {
@@ -656,6 +660,9 @@ const styles = StyleSheet.create({
         fontWeight: '700',
     },
     inCartButton: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        gap: 6,
         backgroundColor: Colors.light.success || '#10B981',
         paddingVertical: 12,
         borderRadius: 12,
@@ -669,7 +676,13 @@ const styles = StyleSheet.create({
     },
     loadingFooter: {
         paddingVertical: 24,
+        paddingBottom: TAB_BAR_HEIGHT,
         alignItems: 'center',
+    },
+    loadingMoreText: {
+        marginTop: 8,
+        fontSize: 14,
+        color: Colors.light.textSecondary,
     },
     emptyState: {
         flex: 1,

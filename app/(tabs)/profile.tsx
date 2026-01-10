@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -11,7 +11,6 @@ import {
     faMapMarkerAlt,
     faBell,
     faLock,
-    faPalette,
     faComments,
     faFileAlt,
     faShieldAlt,
@@ -24,6 +23,7 @@ import {
 import { useCartStore } from '../../src/store/cartStore';
 import { useCurrentUser, useLogout, useOrders } from '../../src/lib/hooks';
 import { Colors } from '../../src/constants/theme';
+import { showConfirm, showAlert } from '../../src/utils/helpers';
 
 // Menu Item Component
 function MenuItem({
@@ -136,16 +136,13 @@ export default function ProfileScreen() {
     }
 
     const handleLogout = () => {
-        Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-            { text: 'Cancel', style: 'cancel' },
-            {
-                text: 'Sign Out',
-                style: 'destructive',
-                onPress: async () => {
-                    await logout();
-                },
-            },
-        ]);
+        showConfirm(
+            'Sign Out',
+            'Are you sure you want to sign out?',
+            () => logout(),
+            undefined,
+            'Sign Out'
+        );
     };
 
     const user = currentUser || userProfile;
@@ -160,7 +157,7 @@ export default function ProfileScreen() {
                     </View>
                     <Text style={styles.userName}>{user?.name || 'User'}</Text>
                     <Text style={styles.userEmail}>{user?.email}</Text>
-                    <TouchableOpacity style={styles.editProfileButton} onPress={() => Alert.alert('Coming Soon', 'Profile editing will be available soon')}>
+                    <TouchableOpacity style={styles.editProfileButton} onPress={() => router.push('/edit-profile' as any)}>
                         <Text style={styles.editProfileText}>Edit Profile</Text>
                     </TouchableOpacity>
                 </View>
@@ -194,19 +191,13 @@ export default function ProfileScreen() {
                         icon={faBell}
                         title='Notifications'
                         subtitle='Manage notifications'
-                        onPress={() => Alert.alert('Coming Soon', 'Notification settings will be available soon')}
+                        onPress={() => showAlert('Coming Soon', 'Notification settings will be available soon')}
                     />
                     <MenuItem
                         icon={faLock}
                         title='Privacy & Security'
                         subtitle='Password, 2FA, and more'
-                        onPress={() => Alert.alert('Coming Soon', 'Security settings will be available soon')}
-                    />
-                    <MenuItem
-                        icon={faPalette}
-                        title='Appearance'
-                        subtitle='Theme and display'
-                        onPress={() => Alert.alert('Coming Soon', 'Theme settings will be available soon')}
+                        onPress={() => router.push('/privacy-security' as any)}
                     />
                 </View>
 
@@ -216,19 +207,19 @@ export default function ProfileScreen() {
                         icon={faComments}
                         title='Help Center'
                         subtitle='FAQs and support'
-                        onPress={() => Alert.alert('Help Center', 'Contact us at support@store.com')}
+                        onPress={() => router.push('/help-center' as any)}
                     />
                     <MenuItem
                         icon={faFileAlt}
                         title='Terms of Service'
                         subtitle='Legal information'
-                        onPress={() => Alert.alert('Terms of Service', 'Terms and conditions apply')}
+                        onPress={() => router.push('/terms-of-service' as any)}
                     />
                     <MenuItem
                         icon={faShieldAlt}
                         title='Privacy Policy'
                         subtitle='How we use your data'
-                        onPress={() => Alert.alert('Privacy Policy', 'Your privacy is important to us')}
+                        onPress={() => router.push('/privacy-policy' as any)}
                     />
                 </View>
 
@@ -247,7 +238,7 @@ export default function ProfileScreen() {
                 {/* App Version */}
                 <Text style={styles.versionText}>Version 1.0.0</Text>
 
-                <View style={{ height: 40 }} />
+                <View style={{ height: Platform.OS === 'ios' ? 100 : 84 }} />
             </ScrollView>
         </SafeAreaView>
     );

@@ -251,14 +251,14 @@ export default function ProductDetailScreen() {
                     <View style={styles.priceContainer}>
                         {hasDiscount ? (
                             <>
-                                <Text style={styles.salePrice}>${product.salePrice.toFixed(2)}</Text>
-                                <Text style={styles.originalPrice}>${product.price.toFixed(2)}</Text>
+                                <Text style={styles.salePrice}>₹{product.salePrice.toFixed(2)}</Text>
+                                <Text style={styles.originalPrice}>₹{product.price.toFixed(2)}</Text>
                                 <View style={styles.discountBadge}>
                                     <Text style={styles.discountText}>-{discountPercentage}%</Text>
                                 </View>
                             </>
                         ) : (
-                            <Text style={styles.price}>${product.price.toFixed(2)}</Text>
+                            <Text style={styles.price}>₹{product.price.toFixed(2)}</Text>
                         )}
                     </View>
 

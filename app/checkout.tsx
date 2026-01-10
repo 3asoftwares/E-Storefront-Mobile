@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,13 +9,27 @@ import {
   Alert,
   ActivityIndicator,
   Image,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Stack } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faCheck, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import { 
+  faCheck, 
+  faArrowLeft, 
+  faPlus, 
+  faTimes, 
+  faMapMarkerAlt, 
+  faTruck, 
+  faCreditCard, 
+  faBuilding, 
+  faMobileAlt,
+  faTag,
+  faLock,
+  faBolt,
+} from '@fortawesome/free-solid-svg-icons';
 import { useCartStore } from '../src/store/cartStore';
-import { useCreateOrder, useAddresses, useValidateCoupon } from '../src/lib/hooks';
+import { useCreateOrder, useAddresses, useValidateCoupon, useAddAddress } from '../src/lib/hooks';
 
 // Order Item Component
 function OrderItem({ item }: { item: any }) {
@@ -32,36 +46,7 @@ function OrderItem({ item }: { item: any }) {
         </Text>
         <Text style={styles.itemQuantity}>Qty: {item.quantity}</Text>
       </View>
-      <Text style={styles.itemPrice}>${(item.price * item.quantity).toFixed(2)}</Text>
-    </View>
-  );
-}
-
-// Step Indicator Component
-function StepIndicator({ steps, currentStep }: { steps: string[]; currentStep: number }) {
-  return (
-    <View style={styles.stepIndicator}>
-      {steps.map((step, index) => (
-        <React.Fragment key={step}>
-          <View style={styles.stepItem}>
-            <View style={[styles.stepCircle, index <= currentStep && styles.stepCircleActive]}>
-              {index < currentStep ? (
-                <FontAwesomeIcon icon={faCheck} size={12} color="#FFFFFF" />
-              ) : (
-                <Text style={[styles.stepNumber, index <= currentStep && styles.stepNumberActive]}>
-                  {index + 1}
-                </Text>
-              )}
-            </View>
-            <Text style={[styles.stepLabel, index <= currentStep && styles.stepLabelActive]}>
-              {step}
-            </Text>
-          </View>
-          {index < steps.length - 1 && (
-            <View style={[styles.stepLine, index < currentStep && styles.stepLineActive]} />
-          )}
-        </React.Fragment>
-      ))}
+      <Text style={styles.itemPrice}>₹{(item.price * item.quantity).toFixed(2)}</Text>
     </View>
   );
 }
@@ -72,157 +57,208 @@ export default function CheckoutScreen() {
   const userProfile = useCartStore((state) => state.userProfile);
   const clearCart = useCartStore((state) => state.clearCart);
 
-  const [currentStep, setCurrentStep] = useState(0);
-  const [couponCode, setCouponCode] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
-
-  // Shipping Info State
-  const [shippingInfo, setShippingInfo] = useState({
-    fullName: userProfile?.name || '',
-    email: userProfile?.email || '',
-    phone: userProfile?.phone || '',
-    address: '',
+  // Address states
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [showAddAddressModal, setShowAddAddressModal] = useState(false);
+  const [newAddressForm, setNewAddressForm] = useState({
+    name: '',
+    email: '',
+    mobile: '',
+    street: '',
     city: '',
     state: '',
-    zipCode: '',
-    country: 'United States',
+    zip: '',
+    country: 'India',
   });
 
-  // Payment Info State
-  const [paymentInfo, setPaymentInfo] = useState({
-    cardNumber: '',
-    cardName: '',
-    expiryDate: '',
-    cvv: '',
-  });
-
+  // Delivery & Payment states
+  const [deliveryMethod, setDeliveryMethod] = useState('standard');
   const [paymentMethod, setPaymentMethod] = useState('card');
+  const [orderNotes, setOrderNotes] = useState('');
+
+  // Coupon states
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [couponError, setCouponError] = useState('');
+
   const [isProcessing, setIsProcessing] = useState(false);
 
   const { createOrder } = useCreateOrder();
   const { validateCoupon, isLoading: isValidatingCoupon } = useValidateCoupon();
-  const { data: savedAddresses = [] } = useAddresses();
+  const { data: savedAddresses = [], isLoading: addressesLoading } = useAddresses();
+  const { addAddress, isLoading: isAddingAddress } = useAddAddress();
 
-  const steps = ['Shipping', 'Payment', 'Review'];
+  // Select default address on load
+  useEffect(() => {
+    if (savedAddresses.length > 0 && !selectedAddressId) {
+      const defaultAddr = savedAddresses.find((a: any) => a.isDefault);
+      if (defaultAddr) {
+        setSelectedAddressId(defaultAddr.id);
+      } else if (savedAddresses[0]) {
+        setSelectedAddressId(savedAddresses[0].id);
+      }
+    }
+  }, [savedAddresses]);
 
   // Calculate totals
   const subtotal = useMemo(() => {
-    return cart.reduce((sum:any, item:any) => sum + item.price * item.quantity, 0);
+    return cart.reduce((sum: any, item: any) => sum + item.price * item.quantity, 0);
   }, [cart]);
 
   const discount = useMemo(() => {
-    if (!appliedCoupon) return 0;
-    if (appliedCoupon.discountType === 'percentage') {
+    if (!appliedCoupon?.valid) return 0;
+    if (appliedCoupon.discountType === 'percentage' || appliedCoupon.discountType === 'PERCENTAGE') {
       return subtotal * (appliedCoupon.discountValue / 100);
     }
-    return appliedCoupon.discountValue;
+    return appliedCoupon.discountValue || appliedCoupon.discount || 0;
   }, [appliedCoupon, subtotal]);
 
-  const shipping = subtotal > 50 ? 0 : 5.99;
-  const tax = (subtotal - discount) * 0.08; // 8% tax
-  const total = subtotal - discount + shipping + tax;
+  const shipping = useMemo(() => {
+    if (deliveryMethod === 'express') return 80;
+    return subtotal > 100 ? 0 : 10;
+  }, [deliveryMethod, subtotal]);
 
-  const handleApplyCoupon = async () => {
-    if (!couponCode.trim()) return;
+  const tax = (subtotal - discount) * 0.08; // 8% tax
+  const total = Math.max(0, subtotal - discount + shipping + tax);
+
+  const handleAddNewAddress = async () => {
+    // Validate required fields
+    if (!newAddressForm.name || !newAddressForm.street || !newAddressForm.city || !newAddressForm.state || !newAddressForm.zip) {
+      Alert.alert('Missing Information', 'Please fill in all required fields');
+      return;
+    }
+
+    // Validate mobile
+    if (newAddressForm.mobile && !/^\d{10}$/.test(newAddressForm.mobile)) {
+      Alert.alert('Invalid Mobile', 'Please enter a valid 10-digit mobile number');
+      return;
+    }
 
     try {
-      const result = await validateCoupon({ code: couponCode.trim(), orderTotal: subtotal });
+      const result = await addAddress({
+        name: newAddressForm.name,
+        email: newAddressForm.email,
+        mobile: newAddressForm.mobile,
+        street: newAddressForm.street,
+        city: newAddressForm.city,
+        state: newAddressForm.state,
+        zip: newAddressForm.zip,
+        country: newAddressForm.country || 'India',
+        isDefault: savedAddresses.length === 0,
+      });
+
+      // Select the newly added address
+      if (result?.address?.id) {
+        setSelectedAddressId(result.address.id);
+      } else if (result?.id) {
+        setSelectedAddressId(result.id);
+      }
+
+      setShowAddAddressModal(false);
+      setNewAddressForm({
+        name: '',
+        email: '',
+        mobile: '',
+        street: '',
+        city: '',
+        state: '',
+        zip: '',
+        country: 'India',
+      });
+      Alert.alert('Success', 'Address added successfully!');
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Failed to add address');
+    }
+  };
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError('Please enter a coupon code');
+      return;
+    }
+
+    setCouponError('');
+
+    try {
+      const result = await validateCoupon({ code: couponCode.trim().toUpperCase(), orderTotal: subtotal });
       if (result?.valid) {
-        setAppliedCoupon(result.coupon);
-        Alert.alert('Success', 'Coupon applied successfully!');
+        setAppliedCoupon(result);
+        Alert.alert('Success', `Coupon applied! You save ₹${result.discount?.toFixed(2) || '0.00'}`);
       } else {
-        Alert.alert('Invalid Coupon', result?.message || 'This coupon is not valid');
+        setCouponError(result?.message || 'Invalid coupon code');
+        setAppliedCoupon(null);
       }
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to validate coupon');
+      setCouponError(err.message || 'Failed to validate coupon');
+      setAppliedCoupon(null);
     }
   };
 
-  const validateShipping = () => {
-    const required = ['fullName', 'email', 'phone', 'address', 'city', 'state', 'zipCode'];
-    for (const field of required) {
-      if (!shippingInfo[field as keyof typeof shippingInfo].trim()) {
-        Alert.alert(
-          'Missing Information',
-          `Please enter your ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`
-        );
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const validatePayment = () => {
-    if (paymentMethod === 'card') {
-      if (!paymentInfo.cardNumber || paymentInfo.cardNumber.length < 16) {
-        Alert.alert('Invalid Card', 'Please enter a valid card number');
-        return false;
-      }
-      if (!paymentInfo.cardName) {
-        Alert.alert('Missing Information', 'Please enter the name on card');
-        return false;
-      }
-      if (!paymentInfo.expiryDate || !/^\d{2}\/\d{2}$/.test(paymentInfo.expiryDate)) {
-        Alert.alert('Invalid Date', 'Please enter expiry date as MM/YY');
-        return false;
-      }
-      if (!paymentInfo.cvv || paymentInfo.cvv.length < 3) {
-        Alert.alert('Invalid CVV', 'Please enter a valid CVV');
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const handleNextStep = () => {
-    if (currentStep === 0 && !validateShipping()) return;
-    if (currentStep === 1 && !validatePayment()) return;
-
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      handlePlaceOrder();
-    }
-  };
-
-  const handlePreviousStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError('');
   };
 
   const handlePlaceOrder = async () => {
+    // Validation
+    if (!userProfile) {
+      Alert.alert('Please Login', 'You need to be logged in to place an order', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Login', onPress: () => router.push('/login') },
+      ]);
+      return;
+    }
+
+    if (!selectedAddressId) {
+      Alert.alert('Missing Address', 'Please select or add a shipping address');
+      return;
+    }
+
+    const selectedAddress = savedAddresses.find((a: any) => a.id === selectedAddressId);
+    if (!selectedAddress) {
+      Alert.alert('Address Error', 'Selected address not found. Please select another.');
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
       const orderItems = cart.map((item) => ({
         productId: item.productId,
+        productName: item.name,
         quantity: item.quantity,
         price: item.price,
         variant: item.variant,
+        subtotal: item.price * item.quantity,
       }));
 
       const orderInput = {
+        customerId: userProfile.id,
+        customerEmail: userProfile.email,
         items: orderItems,
         shippingAddress: {
-          fullName: shippingInfo.fullName,
-          address: shippingInfo.address,
-          city: shippingInfo.city,
-          state: shippingInfo.state,
-          zipCode: shippingInfo.zipCode,
-          country: shippingInfo.country,
-          phone: shippingInfo.phone,
+          name: selectedAddress.name,
+          mobile: selectedAddress.mobile,
+          email: selectedAddress.email,
+          street: selectedAddress.street,
+          city: selectedAddress.city,
+          state: selectedAddress.state,
+          zip: selectedAddress.zip,
+          country: selectedAddress.country,
         },
         paymentMethod,
+        notes: orderNotes,
         subtotal,
         discount,
         shipping,
         tax,
         total,
-        couponCode: appliedCoupon?.code,
+        couponCode: appliedCoupon?.valid ? couponCode.trim().toUpperCase() : undefined,
       };
 
       const order = await createOrder(orderInput);
+      clearCart();
 
       Alert.alert(
         'Order Placed!',
@@ -266,368 +302,434 @@ export default function CheckoutScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <FontAwesomeIcon icon={faArrowLeft} size={16} color="#4F46E5" />
-          <Text style={[styles.backButton, { marginLeft: 4 }]}>Back</Text>
+          <Text style={styles.backButtonText}>Back</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Checkout</Text>
-        <View style={{ width: 50 }} />
+        <View style={styles.headerTitleContainer}>
+          <FontAwesomeIcon icon={faLock} size={14} color="#10B981" />
+          <Text style={styles.headerTitle}>Secure Checkout</Text>
+        </View>
+        <View style={{ width: 60 }} />
       </View>
 
-      {/* Step Indicator */}
-      <StepIndicator steps={steps} currentStep={currentStep} />
-
-      <ScrollView
-        style={styles.content}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Step 1: Shipping */}
-        {currentStep === 0 && (
-          <View style={styles.stepContent}>
-            <Text style={styles.sectionTitle}>Shipping Information</Text>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Full Name</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="John Doe"
-                value={shippingInfo.fullName}
-                onChangeText={(text) => setShippingInfo({ ...shippingInfo, fullName: text })}
-                placeholderTextColor="#9CA3AF"
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="john@example.com"
-                value={shippingInfo.email}
-                onChangeText={(text) => setShippingInfo({ ...shippingInfo, email: text })}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                placeholderTextColor="#9CA3AF"
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Phone</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="+1 234 567 8900"
-                value={shippingInfo.phone}
-                onChangeText={(text) => setShippingInfo({ ...shippingInfo, phone: text })}
-                keyboardType="phone-pad"
-                placeholderTextColor="#9CA3AF"
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Address</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="123 Main Street"
-                value={shippingInfo.address}
-                onChangeText={(text) => setShippingInfo({ ...shippingInfo, address: text })}
-                placeholderTextColor="#9CA3AF"
-              />
-            </View>
-
-            <View style={styles.inputRow}>
-              <View style={[styles.inputGroup, { flex: 1 }]}>
-                <Text style={styles.label}>City</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="New York"
-                  value={shippingInfo.city}
-                  onChangeText={(text) => setShippingInfo({ ...shippingInfo, city: text })}
-                  placeholderTextColor="#9CA3AF"
-                />
-              </View>
-              <View style={{ width: 12 }} />
-              <View style={[styles.inputGroup, { flex: 1 }]}>
-                <Text style={styles.label}>State</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="NY"
-                  value={shippingInfo.state}
-                  onChangeText={(text) => setShippingInfo({ ...shippingInfo, state: text })}
-                  placeholderTextColor="#9CA3AF"
-                />
-              </View>
-            </View>
-
-            <View style={styles.inputRow}>
-              <View style={[styles.inputGroup, { flex: 1 }]}>
-                <Text style={styles.label}>ZIP Code</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="10001"
-                  value={shippingInfo.zipCode}
-                  onChangeText={(text) => setShippingInfo({ ...shippingInfo, zipCode: text })}
-                  keyboardType="numeric"
-                  placeholderTextColor="#9CA3AF"
-                />
-              </View>
-              <View style={{ width: 12 }} />
-              <View style={[styles.inputGroup, { flex: 1 }]}>
-                <Text style={styles.label}>Country</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="United States"
-                  value={shippingInfo.country}
-                  onChangeText={(text) => setShippingInfo({ ...shippingInfo, country: text })}
-                  placeholderTextColor="#9CA3AF"
-                />
-              </View>
-            </View>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        
+        {/* Shipping Address Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <FontAwesomeIcon icon={faMapMarkerAlt} size={18} color="#4F46E5" />
+            <Text style={styles.sectionTitle}>Shipping Address</Text>
           </View>
-        )}
 
-        {/* Step 2: Payment */}
-        {currentStep === 1 && (
-          <View style={styles.stepContent}>
-            <Text style={styles.sectionTitle}>Payment Method</Text>
-
-            {/* Payment Method Selection */}
-            <View style={styles.paymentMethods}>
-              <TouchableOpacity
-                style={[
-                  styles.paymentOption,
-                  paymentMethod === 'card' && styles.paymentOptionActive,
-                ]}
-                onPress={() => setPaymentMethod('card')}
-              >
-                <Text style={styles.paymentOptionIcon}>💳</Text>
-                <Text style={styles.paymentOptionText}>Credit Card</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.paymentOption,
-                  paymentMethod === 'paypal' && styles.paymentOptionActive,
-                ]}
-                onPress={() => setPaymentMethod('paypal')}
-              >
-                <Text style={styles.paymentOptionIcon}>🅿️</Text>
-                <Text style={styles.paymentOptionText}>PayPal</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.paymentOption,
-                  paymentMethod === 'cod' && styles.paymentOptionActive,
-                ]}
-                onPress={() => setPaymentMethod('cod')}
-              >
-                <Text style={styles.paymentOptionIcon}>💵</Text>
-                <Text style={styles.paymentOptionText}>Cash on Delivery</Text>
-              </TouchableOpacity>
+          {addressesLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#4F46E5" />
+              <Text style={styles.loadingText}>Loading addresses...</Text>
             </View>
-
-            {paymentMethod === 'card' && (
-              <>
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Card Number</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="1234 5678 9012 3456"
-                    value={paymentInfo.cardNumber}
-                    onChangeText={(text) =>
-                      setPaymentInfo({
-                        ...paymentInfo,
-                        cardNumber: text.replace(/\D/g, '').slice(0, 16),
-                      })
-                    }
-                    keyboardType="numeric"
-                    maxLength={19}
-                    placeholderTextColor="#9CA3AF"
-                  />
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Name on Card</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="John Doe"
-                    value={paymentInfo.cardName}
-                    onChangeText={(text) => setPaymentInfo({ ...paymentInfo, cardName: text })}
-                    autoCapitalize="words"
-                    placeholderTextColor="#9CA3AF"
-                  />
-                </View>
-
-                <View style={styles.inputRow}>
-                  <View style={[styles.inputGroup, { flex: 1 }]}>
-                    <Text style={styles.label}>Expiry Date</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="MM/YY"
-                      value={paymentInfo.expiryDate}
-                      onChangeText={(text) => {
-                        const cleaned = text.replace(/\D/g, '');
-                        if (cleaned.length >= 2) {
-                          setPaymentInfo({
-                            ...paymentInfo,
-                            expiryDate: `${cleaned.slice(0, 2)}/${cleaned.slice(2, 4)}`,
-                          });
-                        } else {
-                          setPaymentInfo({ ...paymentInfo, expiryDate: cleaned });
-                        }
-                      }}
-                      keyboardType="numeric"
-                      maxLength={5}
-                      placeholderTextColor="#9CA3AF"
-                    />
+          ) : savedAddresses.length > 0 ? (
+            <View style={styles.addressList}>
+              {savedAddresses.map((address: any) => (
+                <TouchableOpacity
+                  key={address.id}
+                  style={[
+                    styles.addressCard,
+                    selectedAddressId === address.id && styles.addressCardSelected,
+                  ]}
+                  onPress={() => setSelectedAddressId(address.id)}
+                >
+                  <View style={styles.radioContainer}>
+                    <View style={[styles.radioOuter, selectedAddressId === address.id && styles.radioOuterSelected]}>
+                      {selectedAddressId === address.id && <View style={styles.radioInner} />}
+                    </View>
                   </View>
-                  <View style={{ width: 12 }} />
-                  <View style={[styles.inputGroup, { flex: 1 }]}>
-                    <Text style={styles.label}>CVV</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="123"
-                      value={paymentInfo.cvv}
-                      onChangeText={(text) =>
-                        setPaymentInfo({ ...paymentInfo, cvv: text.replace(/\D/g, '').slice(0, 4) })
-                      }
-                      keyboardType="numeric"
-                      maxLength={4}
-                      secureTextEntry
-                      placeholderTextColor="#9CA3AF"
-                    />
+                  <View style={styles.addressContent}>
+                    <View style={styles.addressNameRow}>
+                      <Text style={styles.addressName}>{address.name}</Text>
+                      {address.isDefault && (
+                        <View style={styles.defaultBadge}>
+                          <Text style={styles.defaultBadgeText}>Default</Text>
+                        </View>
+                      )}
+                    </View>
+                    {address.mobile && <Text style={styles.addressDetail}>📱 {address.mobile}</Text>}
+                    <Text style={styles.addressDetail}>{address.street}</Text>
+                    <Text style={styles.addressDetail}>
+                      {address.city}, {address.state} {address.zip}
+                    </Text>
+                    <Text style={styles.addressDetail}>{address.country}</Text>
                   </View>
-                </View>
-              </>
-            )}
-
-            {paymentMethod === 'paypal' && (
-              <View style={styles.paypalNotice}>
-                <Text style={styles.paypalText}>
-                  You will be redirected to PayPal to complete your payment.
-                </Text>
-              </View>
-            )}
-
-            {paymentMethod === 'cod' && (
-              <View style={styles.codNotice}>
-                <Text style={styles.codText}>💵 Pay with cash when your order is delivered.</Text>
-              </View>
-            )}
-          </View>
-        )}
-
-        {/* Step 3: Review */}
-        {currentStep === 2 && (
-          <View style={styles.stepContent}>
-            <Text style={styles.sectionTitle}>Order Summary</Text>
-
-            {/* Order Items */}
-            <View style={styles.orderItems}>
-              {cart.map((item) => (
-                <OrderItem key={item.productId} item={item} />
+                </TouchableOpacity>
               ))}
             </View>
+          ) : (
+            <Text style={styles.noAddressText}>No saved addresses. Please add one below.</Text>
+          )}
 
-            {/* Shipping Info Summary */}
-            <View style={styles.summarySection}>
-              <Text style={styles.summaryTitle}>Shipping Address</Text>
-              <Text style={styles.summaryText}>{shippingInfo.fullName}</Text>
-              <Text style={styles.summaryText}>{shippingInfo.address}</Text>
-              <Text style={styles.summaryText}>
-                {shippingInfo.city}, {shippingInfo.state} {shippingInfo.zipCode}
+          <TouchableOpacity style={styles.addAddressButton} onPress={() => setShowAddAddressModal(true)}>
+            <FontAwesomeIcon icon={faPlus} size={14} color="#4F46E5" />
+            <Text style={styles.addAddressButtonText}>Add New Address</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Delivery Method Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <FontAwesomeIcon icon={faTruck} size={18} color="#4F46E5" />
+            <Text style={styles.sectionTitle}>Delivery Method</Text>
+          </View>
+
+          <TouchableOpacity
+            style={[styles.optionCard, deliveryMethod === 'standard' && styles.optionCardSelected]}
+            onPress={() => setDeliveryMethod('standard')}
+          >
+            <View style={styles.radioContainer}>
+              <View style={[styles.radioOuter, deliveryMethod === 'standard' && styles.radioOuterSelected]}>
+                {deliveryMethod === 'standard' && <View style={styles.radioInner} />}
+              </View>
+            </View>
+            <View style={styles.optionContent}>
+              <Text style={styles.optionTitle}>Standard Delivery</Text>
+              <Text style={styles.optionDescription}>
+                5-7 business days • {subtotal > 100 ? 'FREE' : '₹10'}
               </Text>
-              <Text style={styles.summaryText}>{shippingInfo.country}</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.optionCard, deliveryMethod === 'express' && styles.optionCardSelected]}
+            onPress={() => setDeliveryMethod('express')}
+          >
+            <View style={styles.radioContainer}>
+              <View style={[styles.radioOuter, deliveryMethod === 'express' && styles.radioOuterSelected]}>
+                {deliveryMethod === 'express' && <View style={styles.radioInner} />}
+              </View>
+            </View>
+            <View style={styles.optionContent}>
+              <View style={styles.optionTitleRow}>
+                <Text style={styles.optionTitle}>Express Delivery</Text>
+                <FontAwesomeIcon icon={faBolt} size={12} color="#F59E0B" />
+              </View>
+              <Text style={styles.optionDescription}>2-3 business days • ₹80</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Payment Method Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <FontAwesomeIcon icon={faCreditCard} size={18} color="#4F46E5" />
+            <Text style={styles.sectionTitle}>Payment Method</Text>
+          </View>
+
+          <TouchableOpacity
+            style={[styles.optionCard, paymentMethod === 'card' && styles.optionCardSelected]}
+            onPress={() => setPaymentMethod('card')}
+          >
+            <View style={styles.radioContainer}>
+              <View style={[styles.radioOuter, paymentMethod === 'card' && styles.radioOuterSelected]}>
+                {paymentMethod === 'card' && <View style={styles.radioInner} />}
+              </View>
+            </View>
+            <FontAwesomeIcon icon={faCreditCard} size={20} color="#6B7280" style={styles.optionIcon} />
+            <Text style={styles.optionTitle}>Credit/Debit Card</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.optionCard, paymentMethod === 'bank' && styles.optionCardSelected]}
+            onPress={() => setPaymentMethod('bank')}
+          >
+            <View style={styles.radioContainer}>
+              <View style={[styles.radioOuter, paymentMethod === 'bank' && styles.radioOuterSelected]}>
+                {paymentMethod === 'bank' && <View style={styles.radioInner} />}
+              </View>
+            </View>
+            <FontAwesomeIcon icon={faBuilding} size={20} color="#6B7280" style={styles.optionIcon} />
+            <Text style={styles.optionTitle}>Bank Transfer</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.optionCard, paymentMethod === 'upi' && styles.optionCardSelected]}
+            onPress={() => setPaymentMethod('upi')}
+          >
+            <View style={styles.radioContainer}>
+              <View style={[styles.radioOuter, paymentMethod === 'upi' && styles.radioOuterSelected]}>
+                {paymentMethod === 'upi' && <View style={styles.radioInner} />}
+              </View>
+            </View>
+            <FontAwesomeIcon icon={faMobileAlt} size={20} color="#6B7280" style={styles.optionIcon} />
+            <Text style={styles.optionTitle}>UPI</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Order Notes Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitleSimple}>Order Notes (Optional)</Text>
+          <TextInput
+            style={styles.notesInput}
+            placeholder="Add any special instructions for delivery..."
+            value={orderNotes}
+            onChangeText={setOrderNotes}
+            multiline
+            numberOfLines={3}
+            placeholderTextColor="#9CA3AF"
+          />
+        </View>
+
+        {/* Order Summary Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitleSimple}>Order Summary</Text>
+          
+          {/* Order Items */}
+          <View style={styles.orderItemsContainer}>
+            {cart.map((item: any) => (
+              <OrderItem key={item.productId} item={item} />
+            ))}
+          </View>
+
+          {/* Coupon Section */}
+          <View style={styles.couponSection}>
+            <View style={styles.couponHeader}>
+              <FontAwesomeIcon icon={faTag} size={14} color="#4F46E5" />
+              <Text style={styles.couponTitle}>Have a coupon?</Text>
             </View>
 
-            {/* Payment Method Summary */}
-            <View style={styles.summarySection}>
-              <Text style={styles.summaryTitle}>Payment Method</Text>
-              <Text style={styles.summaryText}>
-                {paymentMethod === 'card' &&
-                  `💳 Credit Card ****${paymentInfo.cardNumber.slice(-4)}`}
-                {paymentMethod === 'paypal' && '🅿️ PayPal'}
-                {paymentMethod === 'cod' && '💵 Cash on Delivery'}
-              </Text>
-            </View>
-
-            {/* Coupon */}
-            {!appliedCoupon && (
-              <View style={styles.couponSection}>
+            {appliedCoupon?.valid ? (
+              <View style={styles.appliedCoupon}>
+                <View style={styles.appliedCouponInfo}>
+                  <FontAwesomeIcon icon={faCheck} size={14} color="#10B981" />
+                  <Text style={styles.appliedCouponCode}>{appliedCoupon.code || couponCode.toUpperCase()}</Text>
+                </View>
+                <View style={styles.appliedCouponDetails}>
+                  <Text style={styles.appliedCouponDiscount}>
+                    {appliedCoupon.discountType === 'percentage' || appliedCoupon.discountType === 'PERCENTAGE'
+                      ? `${appliedCoupon.discountValue}% off`
+                      : `₹${appliedCoupon.discount?.toFixed(2)} off`}
+                  </Text>
+                  <TouchableOpacity onPress={handleRemoveCoupon}>
+                    <FontAwesomeIcon icon={faTimes} size={16} color="#EF4444" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              <View style={styles.couponInputRow}>
                 <TextInput
                   style={styles.couponInput}
                   placeholder="Enter coupon code"
                   value={couponCode}
-                  onChangeText={setCouponCode}
+                  onChangeText={(text) => {
+                    setCouponCode(text.toUpperCase());
+                    setCouponError('');
+                  }}
                   autoCapitalize="characters"
                   placeholderTextColor="#9CA3AF"
                 />
                 <TouchableOpacity
-                  style={styles.couponButton}
+                  style={styles.couponApplyButton}
                   onPress={handleApplyCoupon}
                   disabled={isValidatingCoupon}
                 >
                   {isValidatingCoupon ? (
                     <ActivityIndicator size="small" color="#FFFFFF" />
                   ) : (
-                    <Text style={styles.couponButtonText}>Apply</Text>
+                    <Text style={styles.couponApplyButtonText}>Apply</Text>
                   )}
                 </TouchableOpacity>
               </View>
             )}
+            {couponError ? <Text style={styles.couponError}>{couponError}</Text> : null}
+          </View>
 
-            {/* Price Breakdown */}
-            <View style={styles.priceBreakdown}>
+          {/* Price Breakdown */}
+          <View style={styles.priceBreakdown}>
+            <View style={styles.priceRow}>
+              <Text style={styles.priceLabel}>Subtotal</Text>
+              <Text style={styles.priceValue}>₹{subtotal.toFixed(2)}</Text>
+            </View>
+            <View style={styles.priceRow}>
+              <Text style={styles.priceLabel}>Shipping</Text>
+              <Text style={[styles.priceValue, shipping === 0 && styles.freeShipping]}>
+                {shipping === 0 ? 'FREE' : `₹${shipping.toFixed(2)}`}
+              </Text>
+            </View>
+            <View style={styles.priceRow}>
+              <Text style={styles.priceLabel}>Tax (8%)</Text>
+              <Text style={styles.priceValue}>₹{tax.toFixed(2)}</Text>
+            </View>
+            {discount > 0 && (
               <View style={styles.priceRow}>
-                <Text style={styles.priceLabel}>Subtotal</Text>
-                <Text style={styles.priceValue}>${subtotal.toFixed(2)}</Text>
+                <Text style={[styles.priceLabel, styles.discountLabel]}>Discount</Text>
+                <Text style={styles.discountValue}>-₹{discount.toFixed(2)}</Text>
               </View>
-              {discount > 0 && (
-                <View style={styles.priceRow}>
-                  <Text style={styles.priceLabel}>Discount</Text>
-                  <Text style={[styles.priceValue, styles.discountValue]}>
-                    -${discount.toFixed(2)}
-                  </Text>
-                </View>
-              )}
-              <View style={styles.priceRow}>
-                <Text style={styles.priceLabel}>Shipping</Text>
-                <Text style={styles.priceValue}>
-                  {shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}
-                </Text>
-              </View>
-              <View style={styles.priceRow}>
-                <Text style={styles.priceLabel}>Tax (8%)</Text>
-                <Text style={styles.priceValue}>${tax.toFixed(2)}</Text>
-              </View>
-              <View style={[styles.priceRow, styles.totalRow]}>
-                <Text style={styles.totalLabel}>Total</Text>
-                <Text style={styles.totalValue}>${total.toFixed(2)}</Text>
-              </View>
+            )}
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Total</Text>
+              <Text style={styles.totalValue}>₹{total.toFixed(2)}</Text>
             </View>
           </View>
-        )}
+        </View>
+
+        {/* Bottom Spacing */}
+        <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* Bottom Actions */}
-      <View style={styles.bottomActions}>
-        {currentStep > 0 && (
-          <TouchableOpacity style={styles.backStepButton} onPress={handlePreviousStep}>
-            <Text style={styles.backStepButtonText}>Back</Text>
-          </TouchableOpacity>
-        )}
+      {/* Place Order Button */}
+      <View style={styles.bottomBar}>
+        <View style={styles.bottomBarLeft}>
+          <Text style={styles.bottomBarTotal}>₹{total.toFixed(2)}</Text>
+          <Text style={styles.bottomBarItems}>{cart.length} items</Text>
+        </View>
         <TouchableOpacity
-          style={[styles.nextButton, currentStep === 0 && { flex: 1 }]}
-          onPress={handleNextStep}
+          style={[styles.placeOrderButton, isProcessing && styles.placeOrderButtonDisabled]}
+          onPress={handlePlaceOrder}
           disabled={isProcessing}
         >
           {isProcessing ? (
             <ActivityIndicator color="#FFFFFF" />
           ) : (
-            <Text style={styles.nextButtonText}>
-              {currentStep === steps.length - 1 ? 'Place Order' : 'Continue'}
-            </Text>
+            <Text style={styles.placeOrderButtonText}>Place Order</Text>
           )}
         </TouchableOpacity>
       </View>
+
+      {/* Add New Address Modal */}
+      <Modal
+        visible={showAddAddressModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowAddAddressModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Add New Address</Text>
+              <TouchableOpacity onPress={() => setShowAddAddressModal(false)}>
+                <FontAwesomeIcon icon={faTimes} size={20} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} style={styles.modalBody}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Full Name *</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="John Doe"
+                  value={newAddressForm.name}
+                  onChangeText={(text) => setNewAddressForm({ ...newAddressForm, name: text })}
+                  placeholderTextColor="#9CA3AF"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Mobile Number *</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="9876543210"
+                  value={newAddressForm.mobile}
+                  onChangeText={(text) => setNewAddressForm({ ...newAddressForm, mobile: text })}
+                  keyboardType="phone-pad"
+                  maxLength={10}
+                  placeholderTextColor="#9CA3AF"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Email (Optional)</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="john@example.com"
+                  value={newAddressForm.email}
+                  onChangeText={(text) => setNewAddressForm({ ...newAddressForm, email: text })}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  placeholderTextColor="#9CA3AF"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Street Address *</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="123 Main Street, Apt 4B"
+                  value={newAddressForm.street}
+                  onChangeText={(text) => setNewAddressForm({ ...newAddressForm, street: text })}
+                  placeholderTextColor="#9CA3AF"
+                />
+              </View>
+
+              <View style={styles.inputRow}>
+                <View style={[styles.inputGroup, { flex: 1 }]}>
+                  <Text style={styles.inputLabel}>City *</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Mumbai"
+                    value={newAddressForm.city}
+                    onChangeText={(text) => setNewAddressForm({ ...newAddressForm, city: text })}
+                    placeholderTextColor="#9CA3AF"
+                  />
+                </View>
+                <View style={{ width: 12 }} />
+                <View style={[styles.inputGroup, { flex: 1 }]}>
+                  <Text style={styles.inputLabel}>State *</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Maharashtra"
+                    value={newAddressForm.state}
+                    onChangeText={(text) => setNewAddressForm({ ...newAddressForm, state: text })}
+                    placeholderTextColor="#9CA3AF"
+                  />
+                </View>
+              </View>
+
+              <View style={styles.inputRow}>
+                <View style={[styles.inputGroup, { flex: 1 }]}>
+                  <Text style={styles.inputLabel}>PIN Code *</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="400001"
+                    value={newAddressForm.zip}
+                    onChangeText={(text) => setNewAddressForm({ ...newAddressForm, zip: text })}
+                    keyboardType="numeric"
+                    maxLength={6}
+                    placeholderTextColor="#9CA3AF"
+                  />
+                </View>
+                <View style={{ width: 12 }} />
+                <View style={[styles.inputGroup, { flex: 1 }]}>
+                  <Text style={styles.inputLabel}>Country</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="India"
+                    value={newAddressForm.country}
+                    onChangeText={(text) => setNewAddressForm({ ...newAddressForm, country: text })}
+                    placeholderTextColor="#9CA3AF"
+                  />
+                </View>
+              </View>
+            </ScrollView>
+
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={() => setShowAddAddressModal(false)}
+              >
+                <Text style={styles.modalCancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalSaveButton}
+                onPress={handleAddNewAddress}
+                disabled={isAddingAddress}
+              >
+                {isAddingAddress ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <Text style={styles.modalSaveButtonText}>Save Address</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -635,7 +737,7 @@ export default function CheckoutScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F9FAFB',
   },
   header: {
     flexDirection: 'row',
@@ -643,163 +745,224 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
   backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButtonText: {
+    marginLeft: 4,
     fontSize: 16,
     color: '#4F46E5',
     fontWeight: '500',
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#111827',
-  },
-  stepIndicator: {
+  headerTitleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 20,
-    paddingHorizontal: 16,
-    backgroundColor: '#F9FAFB',
+    gap: 6,
   },
-  stepItem: {
-    alignItems: 'center',
-  },
-  stepCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#E5E7EB',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  stepCircleActive: {
-    backgroundColor: '#4F46E5',
-  },
-  stepNumber: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#6B7280',
-  },
-  stepNumberActive: {
-    color: '#FFFFFF',
-  },
-  stepCheckmark: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
-  stepLabel: {
-    marginTop: 4,
-    fontSize: 12,
-    color: '#9CA3AF',
-  },
-  stepLabelActive: {
-    color: '#4F46E5',
-    fontWeight: '500',
-  },
-  stepLine: {
-    width: 40,
-    height: 2,
-    backgroundColor: '#E5E7EB',
-    marginHorizontal: 8,
-    marginBottom: 20,
-  },
-  stepLineActive: {
-    backgroundColor: '#4F46E5',
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
   },
   content: {
     flex: 1,
   },
-  stepContent: {
+  section: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 16,
+    marginTop: 16,
     padding: 16,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 16,
-  },
-  inputGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#374151',
-    marginBottom: 6,
-  },
-  input: {
-    backgroundColor: '#F9FAFB',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: '#111827',
-  },
-  inputRow: {
-    flexDirection: 'row',
-  },
-  paymentMethods: {
-    marginBottom: 20,
-  },
-  paymentOption: {
+  sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderWidth: 1,
+    marginBottom: 16,
+    gap: 10,
+  },
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  sectionTitleSimple: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 16,
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+    gap: 8,
+  },
+  loadingText: {
+    color: '#6B7280',
+    fontSize: 14,
+  },
+  addressList: {
+    gap: 10,
+  },
+  addressCard: {
+    flexDirection: 'row',
+    padding: 14,
+    borderWidth: 2,
     borderColor: '#E5E7EB',
     borderRadius: 12,
-    marginBottom: 12,
+    backgroundColor: '#FFFFFF',
+    marginBottom: 10,
   },
-  paymentOptionActive: {
+  addressCardSelected: {
     borderColor: '#4F46E5',
     backgroundColor: '#EEF2FF',
   },
-  paymentOptionIcon: {
-    fontSize: 24,
+  radioContainer: {
+    marginRight: 12,
+    justifyContent: 'flex-start',
+    paddingTop: 2,
+  },
+  radioOuter: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#D1D5DB',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  radioOuterSelected: {
+    borderColor: '#4F46E5',
+  },
+  radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#4F46E5',
+  },
+  addressContent: {
+    flex: 1,
+  },
+  addressNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+    gap: 8,
+  },
+  addressName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  defaultBadge: {
+    backgroundColor: '#DBEAFE',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  defaultBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#1D4ED8',
+  },
+  addressDetail: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  noAddressText: {
+    color: '#6B7280',
+    fontSize: 14,
+    textAlign: 'center',
+    paddingVertical: 20,
+  },
+  addAddressButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    marginTop: 12,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    borderStyle: 'dashed',
+    borderRadius: 12,
+    gap: 8,
+  },
+  addAddressButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4F46E5',
+  },
+  optionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    marginBottom: 10,
+  },
+  optionCardSelected: {
+    borderColor: '#4F46E5',
+    backgroundColor: '#EEF2FF',
+  },
+  optionContent: {
+    flex: 1,
+  },
+  optionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  optionTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  optionDescription: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  optionIcon: {
     marginRight: 12,
   },
-  paymentOptionText: {
-    fontSize: 16,
+  notesInput: {
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 14,
     color: '#111827',
-    fontWeight: '500',
+    minHeight: 80,
+    textAlignVertical: 'top',
   },
-  paypalNotice: {
-    backgroundColor: '#FEF3C7',
-    padding: 16,
-    borderRadius: 8,
-  },
-  paypalText: {
-    color: '#92400E',
-    fontSize: 14,
-  },
-  codNotice: {
-    backgroundColor: '#ECFDF5',
-    padding: 16,
-    borderRadius: 8,
-  },
-  codText: {
-    color: '#065F46',
-    fontSize: 14,
-  },
-  orderItems: {
-    marginBottom: 20,
+  orderItemsContainer: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    paddingBottom: 16,
+    marginBottom: 16,
   },
   orderItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    paddingVertical: 8,
   },
   itemImage: {
-    width: 60,
-    height: 60,
+    width: 50,
+    height: 50,
     borderRadius: 8,
     backgroundColor: '#F3F4F6',
   },
@@ -822,57 +985,89 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#111827',
   },
-  summarySection: {
-    backgroundColor: '#F9FAFB',
-    padding: 16,
-    borderRadius: 12,
+  couponSection: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    paddingBottom: 16,
     marginBottom: 16,
   },
-  summaryTitle: {
+  couponHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 8,
+  },
+  couponTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#111827',
-    marginBottom: 8,
+    color: '#374151',
   },
-  summaryText: {
-    fontSize: 14,
-    color: '#6B7280',
-    lineHeight: 20,
-  },
-  couponSection: {
+  couponInputRow: {
     flexDirection: 'row',
-    marginBottom: 16,
+    gap: 10,
   },
   couponInput: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
     borderWidth: 1,
     borderColor: '#E5E7EB',
-    borderRadius: 8,
-    paddingHorizontal: 12,
+    borderRadius: 10,
+    paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 14,
+    color: '#111827',
   },
-  couponButton: {
+  couponApplyButton: {
     backgroundColor: '#4F46E5',
     paddingHorizontal: 20,
-    marginLeft: 12,
-    borderRadius: 8,
+    paddingVertical: 12,
+    borderRadius: 10,
     justifyContent: 'center',
+    alignItems: 'center',
   },
-  couponButtonText: {
+  couponApplyButtonText: {
     color: '#FFFFFF',
     fontWeight: '600',
+    fontSize: 14,
+  },
+  couponError: {
+    color: '#EF4444',
+    fontSize: 12,
+    marginTop: 8,
+  },
+  appliedCoupon: {
+    backgroundColor: '#ECFDF5',
+    borderWidth: 2,
+    borderColor: '#10B981',
+    borderRadius: 10,
+    padding: 12,
+  },
+  appliedCouponInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  appliedCouponCode: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#065F46',
+  },
+  appliedCouponDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  appliedCouponDiscount: {
+    fontSize: 12,
+    color: '#059669',
   },
   priceBreakdown: {
-    backgroundColor: '#F9FAFB',
-    padding: 16,
-    borderRadius: 12,
+    gap: 10,
   },
   priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    alignItems: 'center',
   },
   priceLabel: {
     fontSize: 14,
@@ -880,58 +1075,83 @@ const styles = StyleSheet.create({
   },
   priceValue: {
     fontSize: 14,
-    color: '#111827',
     fontWeight: '500',
+    color: '#111827',
+  },
+  freeShipping: {
+    color: '#10B981',
+    fontWeight: '600',
+  },
+  discountLabel: {
+    color: '#10B981',
   },
   discountValue: {
-    color: '#059669',
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#10B981',
   },
   totalRow: {
-    marginTop: 8,
-    paddingTop: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 10,
+    paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
   },
   totalLabel: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '700',
     color: '#111827',
   },
   totalValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 22,
+    fontWeight: '700',
     color: '#111827',
   },
-  bottomActions: {
+  bottomBar: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 16,
+    paddingBottom: 24,
+    backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
-    gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 10,
   },
-  backStepButton: {
+  bottomBarLeft: {
     flex: 1,
-    paddingVertical: 16,
-    borderRadius: 12,
-    backgroundColor: '#F3F4F6',
-    alignItems: 'center',
   },
-  backStepButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
+  bottomBarTotal: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
   },
-  nextButton: {
-    flex: 2,
-    paddingVertical: 16,
-    borderRadius: 12,
+  bottomBarItems: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  placeOrderButton: {
     backgroundColor: '#4F46E5',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 14,
+    minWidth: 160,
     alignItems: 'center',
   },
-  nextButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
+  placeOrderButtonDisabled: {
+    backgroundColor: '#9CA3AF',
+  },
+  placeOrderButtonText: {
     color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
   },
   emptyState: {
     flex: 1,
@@ -953,10 +1173,92 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
     backgroundColor: '#4F46E5',
-    borderRadius: 8,
+    borderRadius: 10,
   },
   shopButtonText: {
     color: '#FFFFFF',
     fontWeight: '600',
+    fontSize: 16,
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '90%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  modalBody: {
+    padding: 20,
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    gap: 12,
+  },
+  modalCancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+  },
+  modalCancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  modalSaveButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#4F46E5',
+    alignItems: 'center',
+  },
+  modalSaveButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  inputGroup: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#374151',
+    marginBottom: 6,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: '#111827',
+    backgroundColor: '#FFFFFF',
+  },
+  inputRow: {
+    flexDirection: 'row',
   },
 });
