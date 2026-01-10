@@ -30,7 +30,6 @@ export function useProducts(page: number = 1, limit: number = 20, filters?: Prod
         },
         fetchPolicy: 'network-only',
       });
-
       return data.products;
     },
     staleTime: 0,
@@ -177,9 +176,14 @@ export function useLogout() {
     },
     onSuccess: async () => {
       await clearAuthToken();
+      await AsyncStorage.removeItem('refreshToken');
+      await AsyncStorage.removeItem('user');
       clearUser();
       queryClient.clear();
-      router.replace('/');
+      // Navigate to home tab after state is cleared
+      setTimeout(() => {
+        router.replace('/(tabs)');
+      }, 100);
     },
   });
 
@@ -193,30 +197,45 @@ export function useCurrentUser() {
   return useQuery({
     queryKey: ['me'],
     queryFn: async () => {
-      const { data } = await apolloClient.query({
-        query: GQL_QUERIES.GET_ME_QUERY,
-        fetchPolicy: 'network-only',
-      });
+      try {
+        const { data } = await apolloClient.query({
+          query: GQL_QUERIES.GET_ME_QUERY,
+          fetchPolicy: 'network-only',
+        });
 
-      return data.me;
+        return data.me;
+      } catch (error: any) {
+        // Check if it's an authentication error
+        const isAuthError = error?.graphQLErrors?.some(
+          (e: any) => e.extensions?.code === 'UNAUTHENTICATED' || e.message?.includes('Not authenticated')
+        ) || error?.message?.includes('Not authenticated');
+        
+        if (isAuthError) {
+          // Clear auth state and throw to trigger redirect
+          await clearAuthToken();
+          throw new Error('Not authenticated');
+        }
+        throw error;
+      }
     },
     retry: false,
   });
 }
 
 // ============== ORDER HOOKS ==============
-export function useOrders(page: number = 1, limit: number = 10) {
+export function useOrders(customerId?: string) {
   return useQuery({
-    queryKey: ['orders', page, limit],
+    queryKey: ['orders', customerId],
     queryFn: async () => {
       const { data } = await apolloClient.query({
         query: GQL_QUERIES.GET_ORDERS_BY_CUSTOMER_QUERY,
-        variables: { page, limit },
+        variables: { customerId },
         fetchPolicy: 'network-only',
       });
 
       return data.ordersByCustomer;
     },
+    enabled: !!customerId,
   });
 }
 
@@ -346,7 +365,7 @@ export function useAddresses() {
         fetchPolicy: 'network-only',
       });
 
-      return data.myAddresses || [];
+      return data.myAddresses?.addresses || [];
     },
   });
 }

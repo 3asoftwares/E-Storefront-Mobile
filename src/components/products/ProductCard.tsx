@@ -20,8 +20,7 @@ interface ProductCardProps {
     name: string;
     price: number;
     compareAtPrice?: number;
-    images?: string[];
-    image?: string;
+    imageUrl?: string;
     rating?: number;
     reviewCount?: number;
     stock?: number;
@@ -35,7 +34,7 @@ export function ProductCard({ product, variant = 'grid', onPress }: ProductCardP
   const router = useRouter();
   const { addItem, addToWishlist, removeFromWishlist, isInWishlist } = useCartStore();
 
-  const imageUrl = product.images?.[0] || product.image || 'https://via.placeholder.com/200';
+  const imageUrl = product.imageUrl || 'https://via.placeholder.com/200';
   const discount = product.compareAtPrice
     ? Math.round((1 - product.price / product.compareAtPrice) * 100)
     : 0;

@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Stack } from 'expo-router';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faCheck, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { useCartStore } from '../src/store/cartStore';
 import { useCreateOrder, useAddresses, useValidateCoupon } from '../src/lib/hooks';
 
@@ -44,7 +46,7 @@ function StepIndicator({ steps, currentStep }: { steps: string[]; currentStep: n
           <View style={styles.stepItem}>
             <View style={[styles.stepCircle, index <= currentStep && styles.stepCircleActive]}>
               {index < currentStep ? (
-                <Text style={styles.stepCheckmark}>✓</Text>
+                <FontAwesomeIcon icon={faCheck} size={12} color="#FFFFFF" />
               ) : (
                 <Text style={[styles.stepNumber, index <= currentStep && styles.stepNumberActive]}>
                   {index + 1}
@@ -66,7 +68,7 @@ function StepIndicator({ steps, currentStep }: { steps: string[]; currentStep: n
 
 // Main Checkout Screen
 export default function CheckoutScreen() {
-  const cart = useCartStore((state) => state.cart);
+  const cart = useCartStore((state) => state.items);
   const userProfile = useCartStore((state) => state.userProfile);
   const clearCart = useCartStore((state) => state.clearCart);
 
@@ -264,8 +266,9 @@ export default function CheckoutScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backButton}>← Back</Text>
+        <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <FontAwesomeIcon icon={faArrowLeft} size={16} color="#4F46E5" />
+          <Text style={[styles.backButton, { marginLeft: 4 }]}>Back</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Checkout</Text>
         <View style={{ width: 50 }} />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Stack } from 'expo-router';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faTimes, faCheck, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { useAddresses, useAddAddress } from '../src/lib/hooks';
 
 // Address Card Component
@@ -36,13 +38,14 @@ function AddressCard({
           <Text style={styles.defaultBadgeText}>Default</Text>
         </View>
       )}
-      <Text style={styles.addressName}>{address.fullName}</Text>
-      <Text style={styles.addressLine}>{address.address}</Text>
+      <Text style={styles.addressName}>{address.name}</Text>
+      {address.email && <Text style={styles.addressLine}>✉️ {address.email}</Text>}
+      <Text style={styles.addressLine}>{address.street}</Text>
       <Text style={styles.addressLine}>
-        {address.city}, {address.state} {address.zipCode}
+        {address.city}, {address.state} {address.zip}
       </Text>
       <Text style={styles.addressLine}>{address.country}</Text>
-      {address.phone && <Text style={styles.addressPhone}>📞 {address.phone}</Text>}
+      {address.mobile && <Text style={styles.addressPhone}>📞 {address.mobile}</Text>}
       <View style={styles.addressActions}>
         {!isDefault && (
           <TouchableOpacity style={styles.addressAction} onPress={onSetDefault}>
@@ -75,23 +78,40 @@ function AddressModal({
   isLoading: boolean;
 }) {
   const [formData, setFormData] = useState({
-    fullName: initialData?.fullName || '',
-    address: initialData?.address || '',
+    name: initialData?.name || '',
+    email: initialData?.email || '',
+    mobile: initialData?.mobile || '',
+    street: initialData?.street || '',
     city: initialData?.city || '',
     state: initialData?.state || '',
-    zipCode: initialData?.zipCode || '',
-    country: initialData?.country || 'United States',
-    phone: initialData?.phone || '',
+    zip: initialData?.zip || '',
+    country: initialData?.country || 'India',
     isDefault: initialData?.isDefault || false,
   });
 
+  // Reset form when initialData changes (opening modal for edit or add)
+  useEffect(() => {
+    setFormData({
+      name: initialData?.name || '',
+      email: initialData?.email || '',
+      mobile: initialData?.mobile || '',
+      street: initialData?.street || '',
+      city: initialData?.city || '',
+      state: initialData?.state || '',
+      zip: initialData?.zip || '',
+      country: initialData?.country || 'India',
+      isDefault: initialData?.isDefault || false,
+    });
+  }, [initialData]);
+
   const handleSave = () => {
     if (
-      !formData.fullName ||
-      !formData.address ||
+      !formData.name ||
+      !formData.mobile ||
+      !formData.street ||
       !formData.city ||
       !formData.state ||
-      !formData.zipCode
+      !formData.zip
     ) {
       Alert.alert('Missing Information', 'Please fill in all required fields');
       return;
@@ -108,7 +128,7 @@ function AddressModal({
               {initialData ? 'Edit Address' : 'Add New Address'}
             </Text>
             <TouchableOpacity onPress={onClose}>
-              <Text style={styles.closeButton}>✕</Text>
+              <FontAwesomeIcon icon={faTimes} size={20} color="#6B7280" />
             </TouchableOpacity>
           </View>
 
@@ -118,19 +138,44 @@ function AddressModal({
               <TextInput
                 style={styles.input}
                 placeholder="John Doe"
-                value={formData.fullName}
-                onChangeText={(text) => setFormData({ ...formData, fullName: text })}
+                value={formData.name}
+                onChangeText={(text) => setFormData({ ...formData, name: text })}
                 placeholderTextColor="#9CA3AF"
               />
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Address *</Text>
+              <Text style={styles.label}>Email</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="email@example.com"
+                value={formData.email}
+                onChangeText={(text) => setFormData({ ...formData, email: text })}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                placeholderTextColor="#9CA3AF"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Mobile *</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="+91 1234567890"
+                value={formData.mobile}
+                onChangeText={(text) => setFormData({ ...formData, mobile: text })}
+                keyboardType="phone-pad"
+                placeholderTextColor="#9CA3AF"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Street Address *</Text>
               <TextInput
                 style={styles.input}
                 placeholder="123 Main Street"
-                value={formData.address}
-                onChangeText={(text) => setFormData({ ...formData, address: text })}
+                value={formData.street}
+                onChangeText={(text) => setFormData({ ...formData, street: text })}
                 placeholderTextColor="#9CA3AF"
               />
             </View>
@@ -165,8 +210,8 @@ function AddressModal({
                 <TextInput
                   style={styles.input}
                   placeholder="10001"
-                  value={formData.zipCode}
-                  onChangeText={(text) => setFormData({ ...formData, zipCode: text })}
+                  value={formData.zip}
+                  onChangeText={(text) => setFormData({ ...formData, zip: text })}
                   keyboardType="numeric"
                   placeholderTextColor="#9CA3AF"
                 />
@@ -184,24 +229,12 @@ function AddressModal({
               </View>
             </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Phone</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="+1 234 567 8900"
-                value={formData.phone}
-                onChangeText={(text) => setFormData({ ...formData, phone: text })}
-                keyboardType="phone-pad"
-                placeholderTextColor="#9CA3AF"
-              />
-            </View>
-
             <TouchableOpacity
               style={styles.defaultToggle}
               onPress={() => setFormData({ ...formData, isDefault: !formData.isDefault })}
             >
               <View style={[styles.checkbox, formData.isDefault && styles.checkboxChecked]}>
-                {formData.isDefault && <Text style={styles.checkmark}>✓</Text>}
+                {formData.isDefault && <FontAwesomeIcon icon={faCheck} size={12} color="#FFFFFF" />}
               </View>
               <Text style={styles.defaultToggleText}>Set as default address</Text>
             </TouchableOpacity>
@@ -281,8 +314,9 @@ export default function AddressesScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backButton}>← Back</Text>
+        <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <FontAwesomeIcon icon={faArrowLeft} size={16} color="#4F46E5" />
+          <Text style={[styles.backButton, { marginLeft: 4 }]}>Back</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>My Addresses</Text>
         <TouchableOpacity

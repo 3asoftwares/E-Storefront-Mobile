@@ -44,7 +44,7 @@ export function ModernProductCard({ product, variant = 'grid', onPress, index = 
     const scaleAnim = useRef(new Animated.Value(1)).current;
     const heartAnim = useRef(new Animated.Value(1)).current;
 
-    const imageUrl = product.images?.[0] || product.image || 'https://via.placeholder.com/200';
+    const imageUrl = product.imageUrl || product.image || 'https://via.placeholder.com/200';
     const actualPrice = product.salePrice || product.price;
     const originalPrice = product.salePrice ? product.price : product.compareAtPrice;
     const hasDiscount = originalPrice && originalPrice > actualPrice;

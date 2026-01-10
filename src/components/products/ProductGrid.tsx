@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { ProductCard } from './ProductCard';
 import { ProductCardSkeleton, EmptyState } from '../ui';
 import { Colors, Spacing, FontSizes, FontWeights } from '../../constants/theme';
@@ -160,8 +162,9 @@ export function ProductHorizontalList({
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>{title}</Text>
           {onSeeAll && (
-            <TouchableOpacity onPress={onSeeAll}>
-              <Text style={styles.seeAllText}>See All →</Text>
+            <TouchableOpacity onPress={onSeeAll} style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.seeAllText}>See All</Text>
+              <FontAwesomeIcon icon={faArrowRight} size={12} color={Colors.light.primary} style={{ marginLeft: 4 }} />
             </TouchableOpacity>
           )}
         </View>

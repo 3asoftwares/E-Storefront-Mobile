@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
     View,
     Text,
@@ -16,7 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faSearch, faSliders, faTimes, faHeart as faHeartSolid, faStar, faShoppingCart } from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faSliders, faTimes, faHeart as faHeartSolid, faStar, faShoppingCart, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { faHeart as faHeartRegular } from '@fortawesome/free-regular-svg-icons';
 import { useProducts, useCategories } from '../../src/lib/hooks';
 import { useCartStore } from '../../src/store/cartStore';
@@ -29,9 +29,10 @@ const PRODUCT_CARD_WIDTH = (width - 48) / 2;
 function ProductCard({ product }: { product: any }) {
     const addToCart = useCartStore((state) => state.addToCart);
     const toggleWishlistItem = useCartStore((state) => state.toggleWishlistItem);
-    const isInWishlist = useCartStore((state) => state.wishlist.some((item) => item.id === product.id));
+    const isInWishlist = useCartStore((state) => state.wishlist.some((item) => item.productId === product.id));
+    const isInCart = useCartStore((state) => state.items.some((item) => item.productId === product.id));
 
-    const imageUrl = product.images?.[0] || 'https://via.placeholder.com/200';
+    const imageUrl = product.imageUrl
     const hasDiscount = product.salePrice && product.salePrice < product.price;
     const discountPercentage = hasDiscount ? Math.round((1 - product.salePrice / product.price) * 100) : 0;
 
@@ -93,12 +94,19 @@ function ProductCard({ product }: { product: any }) {
                         <Text style={styles.reviewCount}>({product.reviewCount || 0})</Text>
                     </View>
                 )}
-                <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart}>
-                    <View style={styles.addToCartContent}>
-                        <FontAwesomeIcon icon={faShoppingCart} size={12} color='#FFFFFF' />
-                        <Text style={styles.addToCartText}>Add to Cart</Text>
+                {isInCart ? (
+                    <View style={styles.inCartButton}>
+                        <FontAwesomeIcon icon={faCheck} size={12} color='#FFFFFF' style={{ marginRight: 4 }} />
+                        <Text style={styles.inCartText}>In Cart</Text>
                     </View>
-                </TouchableOpacity>
+                ) : (
+                    <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart}>
+                        <View style={styles.addToCartContent}>
+                            <FontAwesomeIcon icon={faShoppingCart} size={12} color='#FFFFFF' />
+                            <Text style={styles.addToCartText}>Add to Cart</Text>
+                        </View>
+                    </TouchableOpacity>
+                )}
             </View>
         </TouchableOpacity>
     );
@@ -226,15 +234,21 @@ function FilterModal({
 // Main Products Screen
 export default function ProductsScreen() {
     const params = useLocalSearchParams();
-    const initialCategory = (params.category as string) || '';
+    const categoryFromUrl = (params.category as string) || '';
 
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+    const [selectedCategory, setSelectedCategory] = useState(categoryFromUrl);
     const [sortBy, setSortBy] = useState('createdAt_desc');
     const [priceRange, setPriceRange] = useState({ min: '', max: '' });
     const [filterModalVisible, setFilterModalVisible] = useState(false);
+
+    // Sync category from URL params
+    useEffect(() => {
+        setSelectedCategory(categoryFromUrl);
+        setPage(1);
+    }, [categoryFromUrl]);
 
     // Debounce search
     const handleSearch = useCallback((text: string) => {
@@ -262,7 +276,7 @@ export default function ProductsScreen() {
 
     const { data: categories = [] } = useCategories();
 
-    const products = productsData?.data || [];
+    const products = productsData?.products || [];
     const totalPages = productsData?.pagination?.totalPages || 1;
 
     const handleLoadMore = () => {
@@ -346,7 +360,7 @@ export default function ProductsScreen() {
                                     setSearch('');
                                     setDebouncedSearch('');
                                 }}>
-                                <Text style={styles.removeFilter}>✕</Text>
+                                <FontAwesomeIcon icon={faTimes} size={12} color={Colors.light.primary} style={{ marginLeft: 8 }} />
                             </TouchableOpacity>
                         </View>
                     )}
@@ -354,7 +368,7 @@ export default function ProductsScreen() {
                         <View style={styles.activeFilterChip}>
                             <Text style={styles.activeFilterText}>{selectedCategory}</Text>
                             <TouchableOpacity onPress={() => setSelectedCategory('')}>
-                                <Text style={styles.removeFilter}>✕</Text>
+                                <FontAwesomeIcon icon={faTimes} size={12} color={Colors.light.primary} style={{ marginLeft: 8 }} />
                             </TouchableOpacity>
                         </View>
                     )}
@@ -406,7 +420,6 @@ export default function ProductsScreen() {
                 />
             )}
 
-            {/* Filter Modal */}
             <FilterModal
                 visible={filterModalVisible}
                 onClose={() => setFilterModalVisible(false)}
@@ -427,6 +440,7 @@ export default function ProductsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        marginBottom: 56,
         backgroundColor: Colors.light.backgroundSecondary,
     },
     searchContainer: {
@@ -637,6 +651,18 @@ const styles = StyleSheet.create({
         gap: 6,
     },
     addToCartText: {
+        color: '#FFFFFF',
+        fontSize: 13,
+        fontWeight: '700',
+    },
+    inCartButton: {
+        backgroundColor: Colors.light.success || '#10B981',
+        paddingVertical: 12,
+        borderRadius: 12,
+        marginTop: 10,
+        alignItems: 'center',
+    },
+    inCartText: {
         color: '#FFFFFF',
         fontSize: 13,
         fontWeight: '700',

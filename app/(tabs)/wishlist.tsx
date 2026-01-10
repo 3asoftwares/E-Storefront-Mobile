@@ -15,10 +15,13 @@ const CARD_WIDTH = width - 32;
 function WishlistItemCard({ item }: { item: WishlistItem }) {
     const addToCart = useCartStore((state) => state.addToCart);
     const removeFromWishlist = useCartStore((state) => state.removeFromWishlist);
+    
+    // Support both productId and id for backwards compatibility
+    const itemId = item.productId || item.id || '';
 
     const handleAddToCart = () => {
         addToCart({
-            productId: item.productId,
+            productId: itemId,
             name: item.name,
             price: item.price,
             image: item.image,
@@ -31,13 +34,13 @@ function WishlistItemCard({ item }: { item: WishlistItem }) {
     const handleRemove = () => {
         Alert.alert('Remove from Wishlist', `Are you sure you want to remove ${item.name} from your wishlist?`, [
             { text: 'Cancel', style: 'cancel' },
-            { text: 'Remove', style: 'destructive', onPress: () => removeFromWishlist(item.productId) },
+            { text: 'Remove', style: 'destructive', onPress: () => removeFromWishlist(itemId) },
         ]);
     };
 
     return (
         <View style={styles.wishlistCard}>
-            <TouchableOpacity style={styles.cardContent} onPress={() => router.push(`/product/${item.productId}`)} activeOpacity={0.7}>
+            <TouchableOpacity style={styles.cardContent} onPress={() => router.push(`/product/${itemId}`)} activeOpacity={0.7}>
                 <Image source={{ uri: item.image || 'https://via.placeholder.com/100' }} style={styles.itemImage} resizeMode='cover' />
                 <View style={styles.itemInfo}>
                     <Text style={styles.itemName} numberOfLines={2}>
@@ -242,7 +245,9 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     addToCartButton: {
-        backgroundColor: Colors.light.primaryLight,
+        borderColor: Colors.light.primary,
+        borderWidth: 2,
+        backgroundColor: Colors.light.background,
         paddingVertical: 10,
         paddingHorizontal: 18,
         borderRadius: 12,

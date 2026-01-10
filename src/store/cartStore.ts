@@ -157,8 +157,8 @@ export const useCartStore = create<CartStore>()(
                 set((state) => ({
                     items:
                         quantity > 0
-                            ? state.items.map((item) => (item.id === id ? { ...item, quantity } : item))
-                            : state.items.filter((item) => item.id !== id),
+                            ? state.items.map((item) => (item.id === id || item.productId === id ? { ...item, quantity } : item))
+                            : state.items.filter((item) => item.id !== id && item.productId !== id),
                 })),
 
             clearCart: () => set({ items: [] }),
@@ -174,16 +174,17 @@ export const useCartStore = create<CartStore>()(
             // Wishlist actions
             addToWishlist: (item) =>
                 set((state) => {
-                    const exists = state.wishlist.find((w) => w.productId === item.productId);
+                    const itemProductId = item.productId || item.id;
+                    const exists = state.wishlist.find((w) => w.productId === itemProductId || w.id === itemProductId);
                     if (exists) return state;
                     return {
-                        wishlist: [...state.wishlist, { ...item, addedAt: Date.now() }],
+                        wishlist: [...state.wishlist, { ...item, productId: itemProductId, addedAt: Date.now() }],
                     };
                 }),
 
             removeFromWishlist: (productId) =>
                 set((state) => ({
-                    wishlist: state.wishlist.filter((w) => w.productId !== productId),
+                    wishlist: state.wishlist.filter((w) => w.productId !== productId && w.id !== productId),
                 })),
 
             toggleWishlistItem: (item) =>

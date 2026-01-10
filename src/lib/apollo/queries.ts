@@ -2,66 +2,54 @@ import { gql } from '@apollo/client';
 
 // ============== PRODUCT QUERIES ==============
 export const GET_PRODUCTS_QUERY = gql`
-  query GetProducts(
-    $page: Int
-    $limit: Int
-    $search: String
-    $category: String
-    $minPrice: Float
-    $maxPrice: Float
-    $sortBy: String
-    $sortOrder: String
-    $featured: Boolean
-  ) {
-    products(
-      page: $page
-      limit: $limit
-      search: $search
-      category: $category
-      minPrice: $minPrice
-      maxPrice: $maxPrice
-      sortBy: $sortBy
-      sortOrder: $sortOrder
-      featured: $featured
-    ) {
+  query GetProducts($page: Int, $limit: Int, $search: String, $category: String, $minPrice: Float, $maxPrice: Float, $sortBy: String, $sortOrder: String, $featured: Boolean, $includeInactive: Boolean) {
+    products(page: $page, limit: $limit, search: $search, category: $category, minPrice: $minPrice, maxPrice: $maxPrice, sortBy: $sortBy, sortOrder: $sortOrder, featured: $featured, includeInactive: $includeInactive) {
       products {
         id
         name
         description
         price
-        imageUrl
         stock
         category
+        sellerId
+        isActive
+        imageUrl
+        tags
         rating
         reviewCount
-        sellerId
-        featured
         createdAt
+        updatedAt
       }
-      total
-      page
-      limit
-      totalPages
+      pagination {
+        page
+        limit
+        total
+        pages
+      }
     }
   }
 `;
 
 export const GET_PRODUCT_QUERY = gql`
-  query GetProduct($id: ID!) {
+   query GetProduct($id: ID!) {
     product(id: $id) {
       id
       name
       description
       price
-      imageUrl
-      images
       stock
       category
+      sellerId
+      seller {
+        id
+        name
+        email
+      }
+      isActive
+      imageUrl
+      tags
       rating
       reviewCount
-      sellerId
-      featured
-      specifications
       createdAt
       updatedAt
     }
@@ -72,16 +60,20 @@ export const GET_PRODUCT_QUERY = gql`
 export const GET_CATEGORIES_QUERY = gql`
   query GetCategories($filter: CategoryFilterInput) {
     categories(filter: $filter) {
+      success
+      message
       data {
         id
         name
-        slug
         description
-        imageUrl
+        icon
+        slug
         isActive
         productCount
+        createdAt
+        updatedAt
       }
-      total
+      count
     }
   }
 `;
@@ -92,11 +84,12 @@ export const LOGIN_MUTATION = gql`
     login(input: $input) {
       user {
         id
-        email
         name
+        email
         role
-        isEmailVerified
-        phone
+        isActive
+        emailVerified
+        createdAt
       }
       accessToken
       refreshToken
@@ -106,13 +99,15 @@ export const LOGIN_MUTATION = gql`
 
 export const REGISTER_MUTATION = gql`
   mutation Register($input: RegisterInput!) {
-    register(input: $input) {
+   register(input: $input) {
       user {
         id
-        email
         name
+        email
         role
-        isEmailVerified
+        isActive
+        emailVerified
+        createdAt
       }
       accessToken
       refreshToken
@@ -130,37 +125,49 @@ export const GET_ME_QUERY = gql`
   query GetMe {
     me {
       id
-      email
       name
+      email
       role
-      isEmailVerified
-      phone
+      isActive
+      emailVerified
       createdAt
+      lastLogin
     }
   }
 `;
 
 // ============== ORDER QUERIES/MUTATIONS ==============
 export const GET_ORDERS_BY_CUSTOMER_QUERY = gql`
-  query GetOrdersByCustomer($page: Int, $limit: Int) {
-    ordersByCustomer(page: $page, limit: $limit) {
-      orders {
-        id
-        status
-        paymentStatus
-        totalAmount
-        items {
-          productId
-          name
-          price
-          quantity
-          imageUrl
-        }
-        createdAt
+  query GetOrdersByCustomer($customerId: String!) {
+    ordersByCustomer(customerId: $customerId) {
+      id
+      orderNumber
+      customerId
+      customerEmail
+      items {
+        productId
+        productName
+        quantity
+        price
+        subtotal
       }
+      subtotal
+      tax
+      shipping
       total
-      page
-      limit
+      orderStatus
+      paymentStatus
+      paymentMethod
+      shippingAddress {
+        street
+        city
+        state
+        zip
+        country
+      }
+      notes
+      createdAt
+      updatedAt
     }
   }
 `;
@@ -169,30 +176,31 @@ export const GET_ORDER_QUERY = gql`
   query GetOrder($id: ID!) {
     order(id: $id) {
       id
+      orderNumber
       customerId
-      status
+      customerEmail
+      items {
+        productId
+        productName
+        quantity
+        price
+        subtotal
+      }
+      subtotal
+      tax
+      shipping
+      total
+      orderStatus
       paymentStatus
       paymentMethod
       shippingAddress {
         street
         city
         state
-        zipCode
+        zip
         country
       }
-      items {
-        productId
-        name
-        price
-        quantity
-        imageUrl
-      }
-      subtotal
-      tax
-      shippingCost
-      discount
-      totalAmount
-      couponCode
+      notes
       createdAt
       updatedAt
     }
@@ -200,12 +208,66 @@ export const GET_ORDER_QUERY = gql`
 `;
 
 export const CREATE_ORDER_MUTATION = gql`
-  mutation CreateOrder($input: CreateOrderInput!) {
+   mutation CreateOrder($input: CreateOrderInput!) {
     createOrder(input: $input) {
-      id
-      status
-      totalAmount
-      createdAt
+      order {
+        id
+        orderNumber
+        customerId
+        customerEmail
+        sellerId
+        items {
+          productId
+          productName
+          quantity
+          price
+          sellerId
+          subtotal
+        }
+        subtotal
+        tax
+        shipping
+        discount
+        couponCode
+        total
+        orderStatus
+        paymentStatus
+        paymentMethod
+        shippingAddress {
+          street
+          city
+          state
+          zip
+          country
+        }
+        notes
+        createdAt
+        updatedAt
+      }
+      orders {
+        id
+        orderNumber
+        customerId
+        customerEmail
+        sellerId
+        items {
+          productId
+          productName
+          quantity
+          price
+          sellerId
+          subtotal
+        }
+        subtotal
+        tax
+        shipping
+        discount
+        total
+        orderStatus
+        paymentStatus
+        createdAt
+      }
+      orderCount
     }
   }
 `;
@@ -216,28 +278,39 @@ export const GET_PRODUCT_REVIEWS_QUERY = gql`
     productReviews(productId: $productId, page: $page, limit: $limit) {
       reviews {
         id
+        productId
         userId
         userName
         rating
-        title
         comment
         helpful
         createdAt
       }
-      total
-      averageRating
+      pagination {
+        page
+        limit
+        total
+        pages
+      }
     }
   }
 `;
 
 export const CREATE_REVIEW_MUTATION = gql`
-  mutation CreateReview($input: CreateReviewInput!) {
-    createReview(input: $input) {
-      id
-      rating
-      title
-      comment
-      createdAt
+ mutation CreateReview($productId: ID!, $input: CreateReviewInput!) {
+    createReview(productId: $productId, input: $input) {
+      success
+      message
+      review {
+        id
+        productId
+        userId
+        userName
+        rating
+        comment
+        helpful
+        createdAt
+      }
     }
   }
 `;
@@ -247,15 +320,12 @@ export const VALIDATE_COUPON_QUERY = gql`
   query ValidateCoupon($code: String!, $orderTotal: Float!) {
     validateCoupon(code: $code, orderTotal: $orderTotal) {
       valid
-      coupon {
-        id
-        code
-        discountType
-        discountValue
-        minOrderAmount
-      }
       discount
+      discountValue
+      finalTotal
+      discountType
       message
+      code
     }
   }
 `;
@@ -264,29 +334,47 @@ export const VALIDATE_COUPON_QUERY = gql`
 export const GET_MY_ADDRESSES_QUERY = gql`
   query GetMyAddresses {
     myAddresses {
-      id
-      label
-      street
-      city
-      state
-      zipCode
-      country
-      isDefault
+      addresses {
+        id
+        userId
+        name
+        mobile
+        email
+        street
+        city
+        state
+        zip
+        country
+        isDefault
+        label
+        createdAt
+        updatedAt
+      }
     }
   }
 `;
 
 export const ADD_ADDRESS_MUTATION = gql`
-  mutation AddAddress($input: AddressInput!) {
+  mutation AddAddress($input: AddAddressInput!) {
     addAddress(input: $input) {
-      id
-      label
-      street
-      city
-      state
-      zipCode
-      country
-      isDefault
+      success
+      message
+      address {
+        id
+        userId
+        name
+        mobile
+        email
+        street
+        city
+        state
+        zip
+        country
+        isDefault
+        label
+        createdAt
+        updatedAt
+      }
     }
   }
 `;
@@ -294,10 +382,17 @@ export const ADD_ADDRESS_MUTATION = gql`
 export const UPDATE_PROFILE_MUTATION = gql`
   mutation UpdateProfile($input: UpdateProfileInput!) {
     updateProfile(input: $input) {
-      id
-      name
-      email
-      phone
+      success
+      message
+      user {
+        id
+        name
+        email
+        role
+        isActive
+        emailVerified
+        createdAt
+      }
     }
   }
 `;

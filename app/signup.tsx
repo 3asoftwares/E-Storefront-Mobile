@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faArrowLeft, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { useRegister } from '../src/lib/hooks';
 
 export default function SignupScreen() {
@@ -67,7 +69,7 @@ export default function SignupScreen() {
                 email: email.trim().toLowerCase(),
                 password,
             });
-            Alert.alert('Account Created', 'Your account has been created successfully!', [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]);
+            Alert.alert('Account Created', 'Your account has been created successfully!', [{ text: 'OK', onPress: () => router.replace('/(tabs)/profile') }]);
         } catch (err: any) {
             const message = err?.message || 'Registration failed. Please try again.';
             Alert.alert('Registration Failed', message);
@@ -93,8 +95,9 @@ export default function SignupScreen() {
             <KeyboardAvoidingView style={styles.keyboardView} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps='handled'>
                     {/* Back Button */}
-                    <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                        <Text style={styles.backButtonText}>← Back</Text>
+                    <TouchableOpacity style={[styles.backButton, { flexDirection: 'row', alignItems: 'center' }]} onPress={() => router.back()}>
+                        <FontAwesomeIcon icon={faArrowLeft} size={16} color="#4F46E5" style={{ marginRight: 4 }} />
+                        <Text style={styles.backButtonText}>Back</Text>
                     </TouchableOpacity>
 
                     {/* Header */}
@@ -219,7 +222,7 @@ export default function SignupScreen() {
                                 setErrors((prev) => ({ ...prev, terms: undefined }));
                             }}>
                             <View style={[styles.checkbox, acceptTerms && styles.checkboxChecked]}>
-                                {acceptTerms && <Text style={styles.checkmark}>✓</Text>}
+                                {acceptTerms && <FontAwesomeIcon icon={faCheck} size={12} color="#FFFFFF" />}
                             </View>
                             <Text style={styles.termsText}>
                                 I agree to the <Text style={styles.termsLink}>Terms of Service</Text> and <Text style={styles.termsLink}>Privacy Policy</Text>

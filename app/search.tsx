@@ -2,6 +2,8 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity, Keyboard } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { useProducts } from '../src/lib/hooks';
 import { ProductCard } from '../src/components/products';
 import { Loading, EmptyState } from '../src/components/ui';
@@ -76,7 +78,7 @@ export default function SearchScreen() {
                     />
                     {searchQuery.length > 0 && (
                         <TouchableOpacity onPress={handleClear} style={styles.clearButton}>
-                            <Text style={styles.clearIcon}>✕</Text>
+                            <FontAwesomeIcon icon={faTimes} size={16} color={Colors.light.textTertiary} />
                         </TouchableOpacity>
                     )}
                 </View>

@@ -10,7 +10,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Stack } from 'expo-router';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faArrowRight, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { useOrders } from '../../src/lib/hooks';
+import { useCartStore } from '../../src/store/cartStore';
 
 // Order Status Badge
 function OrderStatusBadge({ status }: { status: string }) {
@@ -62,7 +65,7 @@ function OrderCard({ order }: { order: any }) {
           <Text style={styles.orderNumber}>Order #{order.orderNumber || order.id.slice(-8)}</Text>
           <Text style={styles.orderDate}>{orderDate}</Text>
         </View>
-        <OrderStatusBadge status={order.status} />
+        <OrderStatusBadge status={order.orderStatus} />
       </View>
 
       <View style={styles.orderDetails}>
@@ -83,7 +86,10 @@ function OrderCard({ order }: { order: any }) {
       </View>
 
       <View style={styles.orderFooter}>
-        <Text style={styles.viewDetailsText}>View Details →</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Text style={styles.viewDetailsText}>View Details</Text>
+          <FontAwesomeIcon icon={faArrowRight} size={12} color="#4F46E5" style={{ marginLeft: 4 }} />
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -91,17 +97,19 @@ function OrderCard({ order }: { order: any }) {
 
 // Main Orders Screen
 export default function OrdersScreen() {
-  const { data: ordersData, isLoading, refetch, isRefetching } = useOrders(1, 20);
+  const userProfile = useCartStore((state) => state.userProfile);
+  const { data: ordersData, isLoading, refetch, isRefetching } = useOrders(userProfile?.id);
 
-  const orders = ordersData?.data || [];
+  const orders = ordersData || [];
 
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
         <Stack.Screen options={{ headerShown: false }} />
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.backButton}>← Back</Text>
+          <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <FontAwesomeIcon icon={faArrowLeft} size={16} color="#4F46E5" />
+            <Text style={[styles.backButton, { marginLeft: 4 }]}>Back</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>My Orders</Text>
           <View style={{ width: 50 }} />
@@ -120,8 +128,9 @@ export default function OrdersScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backButton}>← Back</Text>
+        <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <FontAwesomeIcon icon={faArrowLeft} size={16} color="#4F46E5" />
+          <Text style={[styles.backButton, { marginLeft: 4 }]}>Back</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>My Orders</Text>
         <View style={{ width: 50 }} />

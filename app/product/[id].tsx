@@ -7,15 +7,9 @@ import {
     faArrowLeft,
     faHeart as faHeartSolid,
     faStar,
-    faStarHalfAlt,
-    faShoppingCart,
     faMinus,
     faPlus,
-    faShare,
-    faCheck,
-    faTruck,
-    faShieldAlt,
-    faUndo,
+    faShare
 } from '@fortawesome/free-solid-svg-icons';
 import { faHeart as faHeartRegular, faStar as faStarRegular } from '@fortawesome/free-regular-svg-icons';
 import { useProduct, useProductReviews } from '../../src/lib/hooks';
@@ -139,7 +133,7 @@ export default function ProductDetailScreen() {
                 id: product.id,
                 name: product.name,
                 price: product.salePrice || product.price,
-                image: product.images?.[0] || 'https://via.placeholder.com/200',
+                image: product.imageUrl || 'https://via.placeholder.com/200',
             });
         }
     }, [product]);
@@ -151,7 +145,7 @@ export default function ProductDetailScreen() {
             productId: product.id,
             name: product.name,
             price: product.salePrice || product.price,
-            image: product.images?.[0] || 'https://via.placeholder.com/200',
+            image: product.imageUrl || 'https://via.placeholder.com/200',
             quantity,
             variant: selectedVariant || undefined,
         });
@@ -195,12 +189,11 @@ export default function ProductDetailScreen() {
     const hasDiscount = product.salePrice && product.salePrice < product.price;
     const discountPercentage = hasDiscount ? Math.round((1 - product.salePrice / product.price) * 100) : 0;
     const inStock = (product.stock || 0) > 0;
-
+    const images = [product.imageUrl, product.imageUrl];
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
             <Stack.Screen options={{ headerShown: false }} />
 
-            {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
                     <FontAwesomeIcon icon={faArrowLeft} size={20} color={Colors.light.text} />
@@ -216,7 +209,7 @@ export default function ProductDetailScreen() {
                                 id: product.id,
                                 name: product.name,
                                 price: product.salePrice || product.price,
-                                image: product.images?.[0] || 'https://via.placeholder.com/200',
+                                image: product.imageUrl || 'https://via.placeholder.com/200',
                             })
                         }>
                         <FontAwesomeIcon
@@ -230,7 +223,7 @@ export default function ProductDetailScreen() {
 
             <ScrollView showsVerticalScrollIndicator={false}>
                 {/* Image Carousel */}
-                <ImageCarousel images={product.images || []} />
+                <ImageCarousel images={images || []} />
 
                 {/* Product Info */}
                 <View style={styles.productInfo}>
@@ -715,7 +708,9 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingVertical: 18,
         borderRadius: 16,
-        backgroundColor: Colors.light.primaryLight,
+        borderColor: Colors.light.primary,
+        borderWidth: 2,
+        backgroundColor: Colors.light.background,
         alignItems: 'center',
         flexDirection: 'row',
         justifyContent: 'center',

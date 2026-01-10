@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faArrowRight, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { useCategories } from '../src/lib/hooks';
 import { Loading, EmptyState } from '../src/components/ui';
 import {
@@ -88,7 +90,7 @@ export default function CategoriesScreen() {
           </Text>
         )}
       </View>
-      <Text style={styles.arrow}>→</Text>
+      <FontAwesomeIcon icon={faArrowRight} size={16} color={Colors.light.textTertiary} />
     </TouchableOpacity>
   );
 
@@ -97,7 +99,7 @@ export default function CategoriesScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Text style={styles.backIcon}>←</Text>
+          <FontAwesomeIcon icon={faArrowLeft} size={20} color={Colors.light.text} />
         </TouchableOpacity>
         <Text style={styles.title}>Categories</Text>
         <View style={styles.placeholder} />

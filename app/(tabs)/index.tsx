@@ -28,7 +28,15 @@ import {
     faBell,
     faSearch,
     faFire,
+    faLaptop,
+    faTshirt,
+    faCouch,
+    faBasketball,
+    faGem,
+    faBlender,
+    faCheck,
 } from '@fortawesome/free-solid-svg-icons';
+import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faHeart as faHeartRegular } from '@fortawesome/free-regular-svg-icons';
 import { useProducts, useCategories } from '../../src/lib/hooks';
 import { useCartStore } from '../../src/store/cartStore';
@@ -42,6 +50,7 @@ function ProductCard({ product, index = 0 }: { product: any; index?: number }) {
     const addToCart = useCartStore((state) => state.addToCart);
     const toggleWishlistItem = useCartStore((state) => state.toggleWishlistItem);
     const isInWishlist = useCartStore((state) => state.wishlist.some((item) => item.productId === product.id));
+    const isInCart = useCartStore((state) => state.items.some((item) => item.productId === product.id));
 
     const scaleAnim = useRef(new Animated.Value(1)).current;
     const heartAnim = useRef(new Animated.Value(1)).current;
@@ -66,7 +75,7 @@ function ProductCard({ product, index = 0 }: { product: any; index?: number }) {
         ]).start();
     }, [index]);
 
-    const imageUrl = product.images?.[0] || 'https://via.placeholder.com/200';
+    const imageUrl = product.imageUrl;
     const hasDiscount = product.salePrice && product.salePrice < product.price;
     const discountPercentage = hasDiscount ? Math.round((1 - product.salePrice / product.price) * 100) : 0;
 
@@ -168,26 +177,44 @@ function ProductCard({ product, index = 0 }: { product: any; index?: number }) {
                             <Text style={styles.reviewCount}>({product.reviewCount || 0})</Text>
                         </View>
                     )}
-                    <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart} activeOpacity={0.8}>
-                        <LinearGradient
-                            colors={[Colors.light.primary, Colors.light.primaryDark]}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
-                            style={styles.addToCartGradient}>
-                            <FontAwesomeIcon icon={faShoppingCart} size={12} color='#FFFFFF' />
-                            <Text style={styles.addToCartText}>Add to Cart</Text>
-                        </LinearGradient>
-                    </TouchableOpacity>
+                    {isInCart ? (
+                        <View style={styles.inCartButton}>
+                            <FontAwesomeIcon icon={faCheck} size={12} color='#FFFFFF' style={{ marginRight: 4 }} />
+                            <Text style={styles.inCartText}>In Cart</Text>
+                        </View>
+                    ) : (
+                        <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart} activeOpacity={0.8}>
+                            <LinearGradient
+                                colors={[Colors.light.primary, Colors.light.primaryDark]}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 1 }}
+                                style={styles.addToCartGradient}>
+                                <FontAwesomeIcon icon={faShoppingCart} size={12} color='#FFFFFF' />
+                                <Text style={styles.addToCartText}>Add to Cart</Text>
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    )}
                 </View>
             </Pressable>
         </Animated.View>
     );
 }
 
-// Category Card Component with modern design
+// Category icons for display
+const CATEGORY_ICONS: IconDefinition[] = [faLaptop, faTshirt, faCouch, faBasketball, faGem, faBlender];
+const CATEGORY_COLORS = [
+    ['#6366F1', '#818CF8'],
+    ['#EC4899', '#F472B6'],
+    ['#F59E0B', '#FBBF24'],
+    ['#10B981', '#34D399'],
+    ['#8B5CF6', '#A78BFA'],
+    ['#EF4444', '#F87171'],
+];
+
 function CategoryCard({ category, index = 0 }: { category: any; index?: number }) {
-    const imageUrl = category.image || 'https://via.placeholder.com/100';
     const scaleAnim = useRef(new Animated.Value(1)).current;
+    const icon = CATEGORY_ICONS[index % CATEGORY_ICONS.length];
+    const colors = CATEGORY_COLORS[index % CATEGORY_COLORS.length];
 
     const handlePressIn = () => {
         Animated.spring(scaleAnim, {
@@ -214,8 +241,8 @@ function CategoryCard({ category, index = 0 }: { category: any; index?: number }
                 onPress={() => router.push(`/products?category=${category.slug}`)}
                 onPressIn={handlePressIn}
                 onPressOut={handlePressOut}>
-                <LinearGradient colors={['rgba(99, 102, 241, 0.1)', 'rgba(99, 102, 241, 0.05)']} style={styles.categoryGradient}>
-                    <Image source={{ uri: imageUrl }} style={styles.categoryImage} resizeMode='cover' />
+                <LinearGradient colors={colors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.categoryGradient}>
+                    <FontAwesomeIcon icon={icon} size={28} color='#FFFFFF' />
                 </LinearGradient>
                 <Text style={styles.categoryName} numberOfLines={1}>
                     {category.name}
@@ -316,7 +343,7 @@ export default function HomeScreen() {
     const addToRecentlyViewed = useCartStore((state) => state.addToRecentlyViewed);
     const recentlyViewed = useCartStore((state) => state.recentlyViewed);
 
-    const products = productsData?.data || [];
+    const products = productsData?.products || [];
     const isLoading = productsLoading || categoriesLoading;
 
     const onRefresh = useCallback(() => {
@@ -341,15 +368,13 @@ export default function HomeScreen() {
                 style={styles.scrollView}
                 showsVerticalScrollIndicator={false}
                 refreshControl={<RefreshControl refreshing={isRefetchingProducts} onRefresh={onRefresh} />}>
-                {/* Hero Banner */}
                 <HeroBanner />
 
-                {/* Categories Section */}
                 {categories && categories.length > 0 && (
                     <View style={styles.section}>
                         <SectionHeader title='Shop by Category' subtitle='Find what you need' onSeeAll={() => router.push('/products')} />
                         <FlatList
-                            data={categories.slice(0, 6)}
+                            data={[...categories].sort((a:any,b:any)=> b.productCount - a.productCount).slice(0, 6)}
                             horizontal
                             showsHorizontalScrollIndicator={false}
                             keyExtractor={(item) => item.id}
@@ -359,8 +384,7 @@ export default function HomeScreen() {
                     </View>
                 )}
 
-                {/* Featured Products Section */}
-                <View style={styles.section}>
+                <View>
                     <SectionHeader title='Featured Products' subtitle='Handpicked for you' icon={faFire} onSeeAll={() => router.push('/products')} />
                     <View style={styles.productsGrid}>
                         {products.map((product: any, index: number) => (
@@ -377,7 +401,6 @@ export default function HomeScreen() {
                     )}
                 </View>
 
-                {/* Recently Viewed Section */}
                 {recentlyViewed.length > 0 && (
                     <View style={styles.section}>
                         <SectionHeader title='Recently Viewed' />
@@ -439,7 +462,7 @@ const styles = StyleSheet.create({
     // Hero Banner Styles
     heroBanner: {
         marginHorizontal: Spacing.base,
-        marginTop: Spacing.base,
+        marginVertical: Spacing.base,
         borderRadius: BorderRadius['2xl'],
         overflow: 'hidden',
         minHeight: 220,
@@ -522,7 +545,7 @@ const styles = StyleSheet.create({
     },
     // Section Styles
     section: {
-        marginTop: Spacing['2xl'],
+        marginBottom: Spacing['2xl'],
     },
     sectionHeader: {
         flexDirection: 'row',
@@ -721,6 +744,21 @@ const styles = StyleSheet.create({
         fontSize: FontSizes.sm,
         fontWeight: FontWeights.bold,
     },
+    inCartButton: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        marginTop: Spacing.sm,
+        borderRadius: BorderRadius.md,
+        backgroundColor: '#10B981',
+        paddingVertical: Spacing.sm,
+        paddingHorizontal: Spacing.md,
+        alignItems: 'center',
+    },
+    inCartText: {
+        color: '#FFFFFF',
+        fontSize: FontSizes.sm,
+        fontWeight: FontWeights.bold,
+    },
     // Recently Viewed Styles
     recentlyViewedList: {
         paddingHorizontal: Spacing.base,
@@ -773,7 +811,7 @@ const styles = StyleSheet.create({
     // Promo Banner Styles
     promoBanner: {
         marginHorizontal: Spacing.base,
-        marginTop: Spacing['2xl'],
+        marginBottom: Spacing['5xl'],
         padding: Spacing.xl,
         borderRadius: BorderRadius.xl,
         alignItems: 'center',

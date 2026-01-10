@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Stack } from 'expo-router';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 
 export default function ForgotPasswordScreen() {
     const [email, setEmail] = useState('');
@@ -73,7 +75,8 @@ export default function ForgotPasswordScreen() {
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps='handled'>
                     {/* Back Button */}
                     <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                        <Text style={styles.backButtonText}>← Back</Text>
+                        <FontAwesomeIcon icon={faArrowLeft} size={16} color="#4F46E5" style={{ marginRight: 4 }} />
+                        <Text style={styles.backButtonText}>Back</Text>
                     </TouchableOpacity>
 
                     {/* Header */}

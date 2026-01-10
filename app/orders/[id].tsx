@@ -10,6 +10,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faArrowLeft, faClipboardList, faGear, faTruck, faCircleCheck, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
+import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { useOrder } from '../../src/lib/hooks';
 
 // Order Status Badge
@@ -44,11 +47,11 @@ function OrderStatusBadge({ status }: { status: string }) {
 
 // Order Timeline
 function OrderTimeline({ status }: { status: string }) {
-  const steps = [
-    { key: 'pending', label: 'Order Placed', icon: '📝' },
-    { key: 'processing', label: 'Processing', icon: '⚙️' },
-    { key: 'shipped', label: 'Shipped', icon: '🚚' },
-    { key: 'delivered', label: 'Delivered', icon: '✅' },
+  const steps: { key: string; label: string; icon: IconDefinition }[] = [
+    { key: 'pending', label: 'Order Placed', icon: faClipboardList },
+    { key: 'processing', label: 'Processing', icon: faGear },
+    { key: 'shipped', label: 'Shipped', icon: faTruck },
+    { key: 'delivered', label: 'Delivered', icon: faCircleCheck },
   ];
 
   const getCurrentStep = () => {
@@ -62,7 +65,10 @@ function OrderTimeline({ status }: { status: string }) {
   if (currentStep === -1) {
     return (
       <View style={styles.cancelledBanner}>
-        <Text style={styles.cancelledText}>❌ This order has been cancelled</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+          <FontAwesomeIcon icon={faTimesCircle} size={16} color="#991B1B" />
+          <Text style={[styles.cancelledText, { marginLeft: 8 }]}>This order has been cancelled</Text>
+        </View>
       </View>
     );
   }
@@ -73,7 +79,7 @@ function OrderTimeline({ status }: { status: string }) {
         <View key={step.key} style={styles.timelineStep}>
           <View style={styles.timelineIconContainer}>
             <View style={[styles.timelineIcon, index <= currentStep && styles.timelineIconActive]}>
-              <Text style={styles.timelineEmoji}>{step.icon}</Text>
+              <FontAwesomeIcon icon={step.icon} size={16} color={index <= currentStep ? '#4F46E5' : '#9CA3AF'} />
             </View>
             {index < steps.length - 1 && (
               <View
@@ -124,8 +130,9 @@ export default function OrderDetailScreen() {
       <SafeAreaView style={styles.container}>
         <Stack.Screen options={{ headerShown: false }} />
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.backButton}>← Back</Text>
+          <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <FontAwesomeIcon icon={faArrowLeft} size={16} color="#4F46E5" />
+            <Text style={[styles.backButton, { marginLeft: 4 }]}>Back</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Order Details</Text>
           <View style={{ width: 50 }} />
@@ -143,8 +150,9 @@ export default function OrderDetailScreen() {
       <SafeAreaView style={styles.container}>
         <Stack.Screen options={{ headerShown: false }} />
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.backButton}>← Back</Text>
+          <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <FontAwesomeIcon icon={faArrowLeft} size={16} color="#4F46E5" />
+            <Text style={[styles.backButton, { marginLeft: 4 }]}>Back</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Order Details</Text>
           <View style={{ width: 50 }} />
@@ -173,8 +181,9 @@ export default function OrderDetailScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backButton}>← Back</Text>
+        <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <FontAwesomeIcon icon={faArrowLeft} size={16} color="#4F46E5" />
+          <Text style={[styles.backButton, { marginLeft: 4 }]}>Back</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Order Details</Text>
         <View style={{ width: 50 }} />
@@ -187,13 +196,13 @@ export default function OrderDetailScreen() {
             <Text style={styles.orderNumber}>Order #{order.orderNumber || order.id.slice(-8)}</Text>
             <Text style={styles.orderDate}>{orderDate}</Text>
           </View>
-          <OrderStatusBadge status={order.status} />
+          <OrderStatusBadge status={order.orderStatus} />
         </View>
 
         {/* Order Timeline */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Order Status</Text>
-          <OrderTimeline status={order.status} />
+          <OrderTimeline status={order.orderStatus} />
         </View>
 
         {/* Order Items */}
@@ -273,7 +282,7 @@ export default function OrderDetailScreen() {
 
         {/* Actions */}
         <View style={styles.actions}>
-          {order.status === 'delivered' && (
+          {order.orderStatus === 'delivered' && (
             <TouchableOpacity style={styles.actionButton}>
               <Text style={styles.actionButtonText}>Write a Review</Text>
             </TouchableOpacity>

@@ -40,14 +40,15 @@ const TabIcon = ({ name, focused, color }: TabIconProps) => {
             <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
                 <FontAwesomeIcon icon={icon} size={22} color={color} />
             </Animated.View>
-            {focused && <View style={styles.activeIndicator} />}
         </View>
     );
 };
 
 export default function TabsLayout() {
     const cartItems = useCartStore((state) => state.items);
-    const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+    const wishlistItems = useCartStore((state) => state.wishlist);
+    const cartCount = cartItems.length;
+    const wishlistCount = wishlistItems.length;
 
     return (
         <Tabs
@@ -117,7 +118,16 @@ export default function TabsLayout() {
                 name='wishlist'
                 options={{
                     title: 'Wishlist',
-                    tabBarIcon: ({ focused, color }) => <TabIcon name='wishlist' focused={focused} color={color} />,
+                    tabBarIcon: ({ focused, color }) => (
+                        <View style={styles.cartIconContainer}>
+                            <TabIcon name='wishlist' focused={focused} color={color} />
+                            {wishlistCount > 0 && (
+                                <Animated.View style={styles.badge}>
+                                    <Text style={styles.badgeText}>{wishlistCount > 99 ? '99+' : wishlistCount}</Text>
+                                </Animated.View>
+                            )}
+                        </View>
+                    ),
                 }}
             />
             <Tabs.Screen

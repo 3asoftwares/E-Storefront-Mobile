@@ -98,7 +98,7 @@ function OrderSummary({ subtotal, discount, shipping, total }: { subtotal: numbe
 
 // Main Cart Screen
 export default function CartScreen() {
-    const cart = useCartStore((state) => state.cart);
+    const cart = useCartStore((state) => state.items);
     const clearCart = useCartStore((state) => state.clearCart);
     const [couponCode, setCouponCode] = useState('');
     const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
@@ -112,10 +112,13 @@ export default function CartScreen() {
 
     const discount = useMemo(() => {
         if (!appliedCoupon) return 0;
-        if (appliedCoupon.discountType === 'percentage') {
+        // Use the pre-calculated discount from the server if available
+        if (appliedCoupon.discount) return appliedCoupon.discount;
+        // Otherwise calculate based on type
+        if (appliedCoupon.discountType === 'percentage' || appliedCoupon.discountType === 'PERCENTAGE') {
             return subtotal * (appliedCoupon.discountValue / 100);
         }
-        return appliedCoupon.discountValue;
+        return appliedCoupon.discountValue || 0;
     }, [appliedCoupon, subtotal]);
 
     const shipping = subtotal > 50 ? 0 : 5.99;
@@ -129,8 +132,14 @@ export default function CartScreen() {
 
         try {
             const result = await validateCoupon({ code: couponCode.trim(), orderTotal: subtotal });
+            console.log('Coupon result:', result);
             if (result?.valid) {
-                setAppliedCoupon(result.coupon);
+                setAppliedCoupon({
+                    code: result.code || couponCode.trim(),
+                    discountType: result.discountType,
+                    discountValue: result.discountValue,
+                    discount: result.discount,
+                });
                 Alert.alert('Success', 'Coupon applied successfully!');
             } else {
                 Alert.alert('Invalid Coupon', result?.message || 'This coupon is not valid');
@@ -211,7 +220,7 @@ export default function CartScreen() {
                                     <View style={styles.appliedCouponInfo}>
                                         <Text style={styles.appliedCouponCode}>{appliedCoupon.code}</Text>
                                         <Text style={styles.appliedCouponDiscount}>
-                                            {appliedCoupon.discountType === 'percentage'
+                                            {appliedCoupon.discountType?.toLowerCase() === 'percentage'
                                                 ? `${appliedCoupon.discountValue}% off`
                                                 : `$${appliedCoupon.discountValue} off`}
                                         </Text>
@@ -273,6 +282,7 @@ export default function CartScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        marginBottom: 72,
         backgroundColor: '#F9FAFB',
     },
     header: {

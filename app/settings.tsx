@@ -11,6 +11,33 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { 
+  faArrowRight, 
+  faArrowLeft,
+  faUser,
+  faLock,
+  faLocationDot,
+  faCreditCard,
+  faBell,
+  faEnvelope,
+  faFingerprint,
+  faShieldHalved,
+  faMoon,
+  faGlobe,
+  faIndianRupeeSign,
+  faCartShopping,
+  faClock,
+  faCircleQuestion,
+  faComments,
+  faStar,
+  faFileLines,
+  faUserShield,
+  faScroll,
+  faRightFromBracket,
+  faTrash
+} from '@fortawesome/free-solid-svg-icons';
+import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
   Colors,
   Spacing,
@@ -22,7 +49,7 @@ import {
 import { useCartStore } from '../src/store/cartStore';
 
 interface SettingItemProps {
-  icon: string;
+  icon: IconDefinition;
   title: string;
   subtitle?: string;
   onPress?: () => void;
@@ -52,7 +79,7 @@ function SettingItem({
       disabled={isToggle}
     >
       <View style={[styles.iconContainer, danger && styles.dangerIcon]}>
-        <Text style={styles.icon}>{icon}</Text>
+        <FontAwesomeIcon icon={icon} size={18} color={danger ? '#EF4444' : '#4F46E5'} />
       </View>
       <View style={styles.settingContent}>
         <Text style={[styles.settingTitle, danger && styles.dangerText]}>{title}</Text>
@@ -66,7 +93,7 @@ function SettingItem({
           thumbColor={value ? Colors.light.textInverse : Colors.light.textTertiary}
         />
       ) : showArrow ? (
-        <Text style={styles.arrow}>→</Text>
+        <FontAwesomeIcon icon={faArrowRight} size={16} color={Colors.light.textTertiary} />
       ) : null}
     </TouchableOpacity>
   );
@@ -160,7 +187,7 @@ export default function SettingsScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Text style={styles.backIcon}>←</Text>
+          <FontAwesomeIcon icon={faArrowLeft} size={20} color={Colors.light.text} />
         </TouchableOpacity>
         <Text style={styles.title}>Settings</Text>
         <View style={styles.placeholder} />
@@ -172,25 +199,25 @@ export default function SettingsScreen() {
           <Text style={styles.sectionTitle}>Account</Text>
           <View style={[styles.sectionContent, Shadows.sm]}>
             <SettingItem
-              icon="👤"
+              icon={faUser}
               title="Edit Profile"
               subtitle="Update your personal information"
               onPress={() => Alert.alert('Coming Soon', 'Profile editing will be available soon')}
             />
             <SettingItem
-              icon="🔐"
+              icon={faLock}
               title="Change Password"
               subtitle="Update your password"
               onPress={() => Alert.alert('Coming Soon', 'Password change will be available soon')}
             />
             <SettingItem
-              icon="📍"
+              icon={faLocationDot}
               title="Addresses"
               subtitle="Manage delivery addresses"
               onPress={() => router.push('/addresses')}
             />
             <SettingItem
-              icon="💳"
+              icon={faCreditCard}
               title="Payment Methods"
               subtitle="Manage cards and payment options"
               onPress={() => Alert.alert('Coming Soon', 'Payment methods will be available soon')}
@@ -203,14 +230,14 @@ export default function SettingsScreen() {
           <Text style={styles.sectionTitle}>Notifications</Text>
           <View style={[styles.sectionContent, Shadows.sm]}>
             <SettingItem
-              icon="🔔"
+              icon={faBell}
               title="Push Notifications"
               subtitle="Receive order and promo updates"
               value={notifications}
               onValueChange={setNotifications}
             />
             <SettingItem
-              icon="📧"
+              icon={faEnvelope}
               title="Email Updates"
               subtitle="Receive newsletters and offers"
               value={emailUpdates}
@@ -224,14 +251,14 @@ export default function SettingsScreen() {
           <Text style={styles.sectionTitle}>Security</Text>
           <View style={[styles.sectionContent, Shadows.sm]}>
             <SettingItem
-              icon="🔒"
+              icon={faFingerprint}
               title="Biometric Login"
               subtitle="Use fingerprint or face ID"
               value={biometric}
               onValueChange={setBiometric}
             />
             <SettingItem
-              icon="🛡️"
+              icon={faShieldHalved}
               title="Two-Factor Authentication"
               subtitle="Add extra security to your account"
               onPress={() => Alert.alert('Coming Soon', '2FA will be available soon')}
@@ -244,22 +271,22 @@ export default function SettingsScreen() {
           <Text style={styles.sectionTitle}>Appearance</Text>
           <View style={[styles.sectionContent, Shadows.sm]}>
             <SettingItem
-              icon="🌙"
+              icon={faMoon}
               title="Dark Mode"
               subtitle="Use dark theme"
               value={darkMode}
               onValueChange={setDarkMode}
             />
             <SettingItem
-              icon="🌐"
+              icon={faGlobe}
               title="Language"
-              subtitle="English (US)"
+              subtitle="English (IN)"
               onPress={() => Alert.alert('Coming Soon', 'Language settings coming soon')}
             />
             <SettingItem
-              icon="💵"
+              icon={faIndianRupeeSign}
               title="Currency"
-              subtitle="USD ($)"
+              subtitle="INR (₹)"
               onPress={() => Alert.alert('Coming Soon', 'Currency settings coming soon')}
             />
           </View>
@@ -270,13 +297,13 @@ export default function SettingsScreen() {
           <Text style={styles.sectionTitle}>Data & Storage</Text>
           <View style={[styles.sectionContent, Shadows.sm]}>
             <SettingItem
-              icon="🛒"
+              icon={faCartShopping}
               title="Clear Cart"
               subtitle="Remove all items from cart"
               onPress={handleClearCart}
             />
             <SettingItem
-              icon="🕐"
+              icon={faClock}
               title="Clear History"
               subtitle="Clear recently viewed & search history"
               onPress={handleClearHistory}
@@ -289,19 +316,19 @@ export default function SettingsScreen() {
           <Text style={styles.sectionTitle}>Support</Text>
           <View style={[styles.sectionContent, Shadows.sm]}>
             <SettingItem
-              icon="❓"
+              icon={faCircleQuestion}
               title="Help Center"
               subtitle="Get help and find answers"
               onPress={() => openURL('https://help.example.com')}
             />
             <SettingItem
-              icon="💬"
+              icon={faComments}
               title="Contact Support"
               subtitle="Chat with our team"
               onPress={() => openURL('mailto:support@example.com')}
             />
             <SettingItem
-              icon="⭐"
+              icon={faStar}
               title="Rate App"
               subtitle="Share your feedback"
               onPress={() => Alert.alert('Thank you!', 'Your feedback helps us improve')}
@@ -314,17 +341,17 @@ export default function SettingsScreen() {
           <Text style={styles.sectionTitle}>Legal</Text>
           <View style={[styles.sectionContent, Shadows.sm]}>
             <SettingItem
-              icon="📄"
+              icon={faFileLines}
               title="Terms of Service"
               onPress={() => openURL('https://example.com/terms')}
             />
             <SettingItem
-              icon="🔏"
+              icon={faUserShield}
               title="Privacy Policy"
               onPress={() => openURL('https://example.com/privacy')}
             />
             <SettingItem
-              icon="📋"
+              icon={faScroll}
               title="Licenses"
               onPress={() => Alert.alert('Licenses', 'Open source licenses used in this app')}
             />
@@ -337,14 +364,14 @@ export default function SettingsScreen() {
             <Text style={[styles.sectionTitle, styles.dangerText]}>Danger Zone</Text>
             <View style={[styles.sectionContent, Shadows.sm]}>
               <SettingItem
-                icon="🚪"
+                icon={faRightFromBracket}
                 title="Log Out"
                 onPress={handleLogout}
                 showArrow={false}
                 danger
               />
               <SettingItem
-                icon="🗑️"
+                icon={faTrash}
                 title="Delete Account"
                 subtitle="Permanently delete your account"
                 onPress={handleDeleteAccount}

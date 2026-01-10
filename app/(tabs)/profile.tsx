@@ -109,18 +109,18 @@ function GuestView() {
 // Main Profile Screen
 export default function ProfileScreen() {
     const userProfile = useCartStore((state) => state.userProfile);
-    const cart = useCartStore((state) => state.cart);
+    const cart = useCartStore((state) => state.items);
     const wishlist = useCartStore((state) => state.wishlist);
 
-    const { data: currentUser, isLoading: userLoading, refetch: refetchUser } = useCurrentUser();
-    const { data: ordersData, isLoading: ordersLoading } = useOrders(1, 10);
+    const { data: currentUser, isLoading: userLoading, error: userError } = useCurrentUser();
+    const { data: ordersData, isLoading: ordersLoading } = useOrders(userProfile?.id);
     const { logout, isLoading: logoutLoading } = useLogout();
 
-    const orders = ordersData?.data || [];
-    const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+    const orders = ordersData || [];
+    const cartItemCount = cart.length;
 
-    // If no user profile and not loading, show guest view
-    if (!userProfile && !userLoading) {
+    // If not authenticated error or no user profile and not loading, show guest view
+    if ((!userProfile && !userLoading) || userError?.message?.includes('Not authenticated')) {
         return <GuestView />;
     }
 
@@ -181,7 +181,7 @@ export default function ProfileScreen() {
                         subtitle='View your order history'
                         onPress={() => router.push('/orders')}
                         showBadge
-                        badgeCount={orders.filter((o: any) => o.status === 'pending').length}
+                        badgeCount={orders.filter((o: any) => o.orderStatus === 'PENDING').length}
                     />
                     <MenuItem icon={faMapMarkerAlt} title='Addresses' subtitle='Manage your addresses' onPress={() => router.push('/addresses')} />
                     <MenuItem icon={faHeart} title='Wishlist' subtitle={`${wishlist.length} items saved`} onPress={() => router.push('/wishlist')} />
