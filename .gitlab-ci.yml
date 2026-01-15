@@ -175,7 +175,8 @@ SonarCloud Analysis:
     - echo "📋 SonarCloud Configuration:"
     - cat sonar-project.properties | grep -E "^sonar\.(projectKey|projectName|organization|host\.url)" || true
     - echo "   Branch - ${CI_COMMIT_REF_NAME}"
-    - echo "   SONAR_TOKEN - ${SONAR_TOKEN}"
+    - echo "   SONAR_TOKEN - [MASKED]"
+    - if [ -z "$SONAR_TOKEN" ]; then echo "❌ ERROR - SONAR_TOKEN is not set!"; exit 1; fi
     - echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     - sonar-scanner -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=${SONAR_TOKEN} -Dsonar.branch.name=${CI_COMMIT_REF_NAME}
   allow_failure: true
@@ -205,52 +206,6 @@ Build Web:
     paths:
       - dist/
     expire_in: 1 week
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_BRANCH == "develop"
-
-Build Android Preview:
-  stage: build
-  extends: .base_job
-  needs:
-    - job: TypeScript Check
-    - job: ESLint Check
-    - job: Format Check
-    - job: Unit Tests
-    - job: SonarCloud Analysis
-  script:
-    - echo "🤖 Building Android Preview APK..."
-    - echo "EXPO_TOKEN - ${EXPO_TOKEN}"
-    - npm install -g eas-cli
-    - eas whoami
-    - eas build --platform android --profile preview --non-interactive --no-wait
-  environment:
-    name: android-preview
-    url: https://expo.dev
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_BRANCH == "develop"
-
-Build iOS Preview:
-  stage: build
-  extends: .base_job
-  needs:
-    - job: TypeScript Check
-    - job: ESLint Check
-    - job: Format Check
-    - job: Unit Tests
-    - job: SonarCloud Analysis
-  script:
-    - echo "🍎 Building iOS Preview..."
-    - echo "EXPO_TOKEN - ${EXPO_TOKEN}"
-    - npm install -g eas-cli
-    - eas whoami
-    - eas build --platform ios --profile preview --non-interactive --no-wait
-  environment:
-    name: ios-preview
-    url: https://expo.dev
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
