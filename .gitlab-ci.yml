@@ -171,6 +171,19 @@ SonarCloud Analysis:
       - .sonar/cache
   script:
     - echo "📊 Running SonarCloud Analysis..."
+    - echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    - echo "📋 SonarCloud Configuration:"
+    - echo "   Project Key: 3asoftwares_E-Storefront-Mobile"
+    - echo "   Organization: 3asoftwares"
+    - echo "   Host URL: https://sonarcloud.io"
+    - echo "   Branch: ${CI_COMMIT_REF_NAME}"
+    - |
+      if [ -z "$SONAR_TOKEN" ]; then
+        echo "   ❌ SONAR_TOKEN: NOT SET!"
+      else
+        echo "   ✅ SONAR_TOKEN: Set (length: ${#SONAR_TOKEN} chars)"
+      fi
+    - echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     - |
       sonar-scanner \
         -Dsonar.host.url=https://sonarcloud.io \
