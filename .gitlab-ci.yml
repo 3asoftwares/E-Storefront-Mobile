@@ -49,6 +49,7 @@ stages:
   - quality
   - test
   - build
+  - sync
 
 # ============================================
 # Stage Templates
@@ -172,3 +173,25 @@ build_android_preview:
     - if: $CI_COMMIT_BRANCH == "develop"
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: manual
+
+# ============================================
+# Sync Stage - Push to GitHub after merge to main
+# ============================================
+
+sync_to_github:
+  stage: sync
+  image: alpine:latest
+  variables:
+    GIT_STRATEGY: clone
+    GIT_DEPTH: 0
+  before_script:
+    - apk add --no-cache git
+  script:
+    - echo "Syncing to GitHub..."
+    - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/3asoftwares/E-Storefront-Mobile.git || true
+    - git push github HEAD:main --force
+    - echo "Successfully synced to GitHub!"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
+  needs: ["build_web"]
