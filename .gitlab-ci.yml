@@ -15,6 +15,9 @@ variables:
   ARTIFACT_COMPRESSION_LEVEL: "fast"
   CACHE_COMPRESSION_LEVEL: "fast"
   GIT_DEPTH: 50
+  # SonarQube Configuration
+  SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
+  GIT_DEPTH: "0"
 
 # ============================================
 # Cache Configuration
@@ -122,6 +125,30 @@ format_check:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
+sonarcloud_check:
+  stage: quality
+  image:
+    name: sonarsource/sonar-scanner-cli:latest
+    entrypoint: [""]
+  needs: ["unit_tests"]
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
+    GIT_DEPTH: "0"
+  cache:
+    key: "${CI_JOB_NAME}"
+    paths:
+      - .sonar/cache
+  script:
+    - |
+      sonar-scanner \
+        -Dsonar.host.url=${SONAR_HOST_URL} \
+        -Dsonar.token=${SONAR_TOKEN}
+  allow_failure: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "develop"
+
 # ============================================
 # Test Stage
 # ============================================
@@ -131,8 +158,12 @@ unit_tests:
   extends: .base_job
   needs: ["install_dependencies"]
   script:
-    - echo "Running unit tests..."
-    - npm test -- --passWithNoTests --ci
+    - echo "Running unit tests with coverage..."
+    - npm test -- --passWithNoTests --ci --coverage
+  artifacts:
+    paths:
+      - coverage/
+    expire_in: 1 day
   allow_failure: true
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
