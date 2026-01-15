@@ -149,6 +149,7 @@ interface IconProps {
   name: IconName;
   size?: number;
   color?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   style?: any;
 }
 

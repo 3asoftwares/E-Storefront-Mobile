@@ -61,8 +61,9 @@ export default function EditProfileScreen() {
       Alert.alert('Success', 'Profile updated successfully', [
         { text: 'OK', onPress: () => router.back() },
       ]);
-    } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to update profile');
+    } catch (err: unknown) {
+      const error = err as Error;
+      Alert.alert('Error', error.message || 'Failed to update profile');
     }
   };
 

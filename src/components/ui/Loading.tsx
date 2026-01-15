@@ -48,6 +48,7 @@ export function Skeleton({ width = '100%', height = 20, borderRadius = 8, style 
       style={[
         styles.skeleton,
         {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           width: width as any,
           height,
           borderRadius,

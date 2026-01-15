@@ -1,10 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { apolloClient } from '../apollo/client';
 import { GQL_QUERIES } from '../apollo/queries';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setAuthToken, clearAuthToken } from '../apollo/client';
 import { useCartStore } from '../../store/cartStore';
-import { router } from 'expo-router';
 
 // ============== PRODUCT HOOKS ==============
 export interface ProductFilters {

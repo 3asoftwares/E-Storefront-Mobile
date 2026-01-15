@@ -46,7 +46,9 @@ function OrderStatusBadge({ status }: { status: string }) {
 }
 
 // Order Card Component
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function OrderCard({ order }: { order: any }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const itemCount = order.items?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
   const orderDate = new Date(order.createdAt).toLocaleDateString('en-US', {
     year: 'numeric',

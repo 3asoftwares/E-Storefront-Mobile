@@ -1,13 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  StatusBar,
-  Platform,
-  ViewStyle,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -141,11 +133,11 @@ interface SearchHeaderProps {
 
 export function SearchHeader({
   value,
-  onChangeText,
+  onChangeText: _onChangeText,
   placeholder = 'Search products...',
   onBack,
   onFilter,
-  autoFocus = true,
+  autoFocus: _autoFocus = true,
 }: SearchHeaderProps) {
   const insets = useSafeAreaInsets();
 

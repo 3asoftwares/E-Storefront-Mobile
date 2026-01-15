@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Platform, Dimensions, Alert } from 'react-native';
 import { APP_CONFIG } from '../constants/theme';
 

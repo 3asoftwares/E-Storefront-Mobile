@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from 'react';
 import {
   View,
@@ -12,7 +13,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, Link, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import {
   faArrowLeft,
@@ -33,7 +34,7 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
-  const { login, isLoading, error } = useLogin();
+    const { login, isLoading, error: _error } = useLogin();
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
@@ -65,8 +66,9 @@ export default function LoginScreen() {
       } else {
         router.replace('/(tabs)');
       }
-    } catch (err: any) {
-      const message = err?.message || 'Login failed. Please try again.';
+    } catch (err: unknown) {
+        const error = err as Error;
+        const message = error?.message || 'Login failed. Please try again.';
       Alert.alert('Login Failed', message);
     }
   };

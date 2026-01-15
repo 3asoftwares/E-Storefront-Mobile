@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  Image,
   TouchableOpacity,
   ActivityIndicator,
   Alert,
@@ -23,7 +23,6 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { useOrder, useCancelOrder } from '../../src/lib/hooks';
-import { faProductHunt } from '@fortawesome/free-brands-svg-icons';
 
 // Order Status Badge
 function OrderStatusBadge({ status }: { status: string }) {
@@ -113,6 +112,7 @@ function OrderTimeline({ status }: { status: string }) {
 }
 
 // Order Item
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function OrderItemCard({ item }: { item: any }) {
   return (
     <View style={styles.orderItem}>

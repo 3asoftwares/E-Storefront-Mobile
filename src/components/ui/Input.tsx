@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faEye, faEyeSlash, faCircleXmark } from '@fortawesome/free-solid-svg-icons';
+import { faEye, faEyeSlash, faCircleXmark, faSearch } from '@fortawesome/free-solid-svg-icons';
 import {
   Colors,
   BorderRadius,
@@ -72,7 +72,7 @@ export function Input({
         useNativeDriver: false,
       }).start();
     }
-  }, [isFocused, hasValue, floatingLabel]);
+  }, [isFocused, hasValue, floatingLabel, labelAnim]);
 
   useEffect(() => {
     Animated.timing(borderAnim, {
@@ -80,13 +80,15 @@ export function Input({
       duration: 150,
       useNativeDriver: false,
     }).start();
-  }, [isFocused]);
+  }, [isFocused, borderAnim]);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleFocus = (e: any) => {
     setIsFocused(true);
     onFocus?.(e);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleBlur = (e: any) => {
     setIsFocused(false);
     onBlur?.(e);
@@ -143,7 +145,7 @@ export function Input({
 
   const sizeStyles = getSizeStyles();
 
-  const animatedBorderColor = borderAnim.interpolate({
+  const _animatedBorderColor = borderAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [Colors.light.border, Colors.light.primary],
   });
@@ -254,20 +256,13 @@ interface SearchInputProps extends Omit<InputProps, 'variant'> {
   onSearch?: () => void;
 }
 
-export function SearchInput({ onSearch, ...props }: SearchInputProps) {
+export function SearchInput({ onSearch: _onSearch, ...props }: SearchInputProps) {
   return (
     <Input
       variant="filled"
       placeholder="Search products..."
       showClear
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      leftIcon={
-        <FontAwesomeIcon
-          icon={require('@fortawesome/free-solid-svg-icons').faSearch}
-          size={16}
-          color={Colors.light.textTertiary}
-        />
-      }
+      leftIcon={<FontAwesomeIcon icon={faSearch} size={16} color={Colors.light.textTertiary} />}
       {...props}
     />
   );

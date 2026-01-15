@@ -51,8 +51,9 @@ export default function ForgotPasswordScreen() {
       } else {
         Alert.alert('Error', result.message || 'Failed to send reset email. Please try again.');
       }
-    } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to send reset email. Please try again.');
+    } catch (err: unknown) {
+      const error = err as Error;
+      Alert.alert('Error', error.message || 'Failed to send reset email. Please try again.');
     }
   };
 

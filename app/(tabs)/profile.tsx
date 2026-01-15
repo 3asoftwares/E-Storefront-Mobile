@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Image,
   ActivityIndicator,
   Platform,
 } from 'react-native';
@@ -26,8 +26,6 @@ import {
   faSignOutAlt,
   faChevronRight,
   faUser,
-  faSearch,
-  faEdit,
 } from '@fortawesome/free-solid-svg-icons';
 import { useCartStore } from '../../src/store/cartStore';
 import { useCurrentUser, useLogout, useOrders } from '../../src/lib/hooks';
@@ -137,7 +135,7 @@ export default function ProfileScreen() {
   const wishlist = useCartStore((state) => state.wishlist);
 
   const { data: currentUser, isLoading: userLoading, error: userError } = useCurrentUser();
-  const { data: ordersData, isLoading: ordersLoading } = useOrders(userProfile?.id);
+  const { data: ordersData, isLoading: _ordersLoading } = useOrders(userProfile?.id);
   const { logout, isLoading: logoutLoading } = useLogout();
 
   const orders = ordersData || [];

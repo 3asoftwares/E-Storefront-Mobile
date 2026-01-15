@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle, TouchableOpacity, Animated } from 'react-native';
+import { View, StyleSheet, ViewStyle, TouchableOpacity } from 'react-native';
 import { Colors, BorderRadius, Shadows, Spacing } from '../../constants/theme';
 
 interface CardProps {

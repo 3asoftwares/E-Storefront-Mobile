@@ -7,7 +7,6 @@ import {
   ViewStyle,
   TextStyle,
   View,
-  Animated,
 } from 'react-native';
 import {
   Colors,

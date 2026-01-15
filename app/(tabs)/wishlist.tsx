@@ -1,14 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  Image,
-  Dimensions,
-  Platform,
-} from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -23,9 +14,6 @@ import { faHeart as faHeartOutline } from '@fortawesome/free-regular-svg-icons';
 import { useCartStore, WishlistItem } from '../../src/store/cartStore';
 import { Colors } from '../../src/constants/theme';
 import { showAlert, showConfirm } from '../../src/utils/helpers';
-
-const { width } = Dimensions.get('window');
-const CARD_WIDTH = width - 32;
 
 // Wishlist Item Card Component
 function WishlistItemCard({ item }: { item: WishlistItem }) {

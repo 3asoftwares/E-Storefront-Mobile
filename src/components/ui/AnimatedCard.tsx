@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { View, StyleSheet, ViewStyle, TouchableOpacity, Animated, Pressable } from 'react-native';
+import { StyleSheet, ViewStyle, Animated, Pressable } from 'react-native';
 import { Colors, BorderRadius, Shadows, Spacing } from '../../constants/theme';
 
 interface AnimatedCardProps {
@@ -21,7 +21,7 @@ export function AnimatedCard({
   padding = 'md',
   radius = 'xl',
   onPress,
-  activeOpacity = 0.98,
+  activeOpacity: _activeOpacity = 0.98,
   animateOnMount = true,
   delay = 0,
 }: AnimatedCardProps) {
@@ -47,7 +47,7 @@ export function AnimatedCard({
         }),
       ]).start();
     }
-  }, [animateOnMount, delay]);
+  }, [animateOnMount, delay, fadeAnim, translateYAnim]);
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {

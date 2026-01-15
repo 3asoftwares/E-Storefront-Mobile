@@ -83,8 +83,9 @@ export default function SignupScreen() {
       Alert.alert('Account Created', 'Your account has been created successfully!', [
         { text: 'OK', onPress: () => router.replace('/(tabs)/profile') },
       ]);
-    } catch (err: any) {
-      const message = err?.message || 'Registration failed. Please try again.';
+    } catch (err: unknown) {
+      const error = err as Error;
+      const message = error?.message || 'Registration failed. Please try again.';
       Alert.alert('Registration Failed', message);
     }
   };

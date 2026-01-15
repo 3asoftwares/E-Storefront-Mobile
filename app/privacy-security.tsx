@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from 'react';
 import {
   View,
@@ -33,6 +34,7 @@ function SecurityMenuItem({
   onPress,
   rightElement,
 }: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   icon: any;
   title: string;
   subtitle?: string;
@@ -87,8 +89,9 @@ function ChangePasswordForm({ onClose }: { onClose: () => void }) {
     try {
       await changePassword({ currentPassword, newPassword });
       Alert.alert('Success', 'Password changed successfully', [{ text: 'OK', onPress: onClose }]);
-    } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to change password');
+    } catch (err: unknown) {
+      const error = err as Error;
+      Alert.alert('Error', error.message || 'Failed to change password');
     }
   };
 

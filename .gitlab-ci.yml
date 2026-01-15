@@ -17,7 +17,6 @@ variables:
   GIT_DEPTH: 50
   # SonarQube Configuration
   SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
-  GIT_DEPTH: "0"
 
 # ============================================
 # Cache Configuration
@@ -220,7 +219,16 @@ Build Android Preview:
     - job: SonarCloud Analysis
   script:
     - echo "🤖 Building Android Preview APK..."
+    - |
+      if [ -z "$EXPO_TOKEN" ]; then
+        echo "❌ ERROR: EXPO_TOKEN is not set!"
+        echo "Please add EXPO_TOKEN to GitLab CI/CD Variables"
+        exit 1
+      else
+        echo "✅ EXPO_TOKEN is set (length: ${#EXPO_TOKEN} chars)"
+      fi
     - npm install -g eas-cli
+    - eas whoami
     - eas build --platform android --profile preview --non-interactive --no-wait
   environment:
     name: android-preview
@@ -241,7 +249,16 @@ Build iOS Preview:
     - job: SonarCloud Analysis
   script:
     - echo "🍎 Building iOS Preview..."
+    - |
+      if [ -z "$EXPO_TOKEN" ]; then
+        echo "❌ ERROR: EXPO_TOKEN is not set!"
+        echo "Please add EXPO_TOKEN to GitLab CI/CD Variables"
+        exit 1
+      else
+        echo "✅ EXPO_TOKEN is set (length: ${#EXPO_TOKEN} chars)"
+      fi
     - npm install -g eas-cli
+    - eas whoami
     - eas build --platform ios --profile preview --non-interactive --no-wait
   environment:
     name: ios-preview

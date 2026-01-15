@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Mock dependencies before importing
 jest.mock('react-native', () => ({
   Platform: { OS: 'ios' },

@@ -42,11 +42,11 @@ export default function SearchScreen() {
   const { recentSearches, addRecentSearch, clearRecentSearches } = useCartStore();
 
   const shouldSearch = debouncedQuery.length >= 2;
-  const { data, isLoading, refetch } = useProducts(
-    1,
-    20,
-    shouldSearch ? { search: debouncedQuery } : undefined
-  );
+  const {
+    data,
+    isLoading,
+    refetch: _refetch,
+  } = useProducts(1, 20, shouldSearch ? { search: debouncedQuery } : undefined);
 
   const products = shouldSearch ? data?.products || [] : [];
   const shouldShowProducts = debouncedQuery.length >= 2;

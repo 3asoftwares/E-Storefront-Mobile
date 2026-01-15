@@ -100,7 +100,7 @@ describe('Input Component', () => {
     });
 
     it('toggles password visibility', () => {
-      const { getByPlaceholderText, getByTestId } = render(
+      const { getByPlaceholderText, getByTestId: _getByTestId } = render(
         <Input placeholder="Password" secureTextEntry testID="password-input" />
       );
 

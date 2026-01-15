@@ -1,6 +1,5 @@
 import { Tabs } from 'expo-router';
 import { Text, View, Platform, StyleSheet, Animated } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import {
   faHome,
@@ -39,7 +38,7 @@ const TabIcon = ({ name, focused, color }: TabIconProps) => {
       friction: 10,
       useNativeDriver: true,
     }).start();
-  }, [focused]);
+  }, [focused, scaleAnim]);
 
   return (
     <View style={[styles.iconContainer, focused && styles.iconContainerActive]}>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
@@ -35,6 +36,7 @@ const PRODUCT_CARD_WIDTH = (width - 48) / 2;
 const TAB_BAR_HEIGHT = 80; // Height of bottom tab bar + safe area
 
 // Product Card Component
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function ProductCard({ product }: { product: any }) {
   const addToCart = useCartStore((state) => state.addToCart);
   const toggleWishlistItem = useCartStore((state) => state.toggleWishlistItem);

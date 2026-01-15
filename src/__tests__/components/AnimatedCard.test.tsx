@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Text, View } from 'react-native';
+import { Text } from 'react-native';
 
 jest.useFakeTimers();
 

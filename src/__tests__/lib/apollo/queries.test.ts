@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   GET_PRODUCTS_QUERY,
   GET_PRODUCT_QUERY,
