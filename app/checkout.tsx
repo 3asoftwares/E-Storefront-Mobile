@@ -14,15 +14,15 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Stack } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { 
-  faCheck, 
-  faArrowLeft, 
-  faPlus, 
-  faTimes, 
-  faMapMarkerAlt, 
-  faTruck, 
-  faCreditCard, 
-  faBuilding, 
+import {
+  faCheck,
+  faArrowLeft,
+  faPlus,
+  faTimes,
+  faMapMarkerAlt,
+  faTruck,
+  faCreditCard,
+  faBuilding,
   faMobileAlt,
   faTag,
   faLock,
@@ -107,7 +107,10 @@ export default function CheckoutScreen() {
 
   const discount = useMemo(() => {
     if (!appliedCoupon?.valid) return 0;
-    if (appliedCoupon.discountType === 'percentage' || appliedCoupon.discountType === 'PERCENTAGE') {
+    if (
+      appliedCoupon.discountType === 'percentage' ||
+      appliedCoupon.discountType === 'PERCENTAGE'
+    ) {
       return subtotal * (appliedCoupon.discountValue / 100);
     }
     return appliedCoupon.discountValue || appliedCoupon.discount || 0;
@@ -123,7 +126,13 @@ export default function CheckoutScreen() {
 
   const handleAddNewAddress = async () => {
     // Validate required fields
-    if (!newAddressForm.name || !newAddressForm.street || !newAddressForm.city || !newAddressForm.state || !newAddressForm.zip) {
+    if (
+      !newAddressForm.name ||
+      !newAddressForm.street ||
+      !newAddressForm.city ||
+      !newAddressForm.state ||
+      !newAddressForm.zip
+    ) {
       Alert.alert('Missing Information', 'Please fill in all required fields');
       return;
     }
@@ -180,10 +189,16 @@ export default function CheckoutScreen() {
     setCouponError('');
 
     try {
-      const result = await validateCoupon({ code: couponCode.trim().toUpperCase(), orderTotal: subtotal });
+      const result = await validateCoupon({
+        code: couponCode.trim().toUpperCase(),
+        orderTotal: subtotal,
+      });
       if (result?.valid) {
         setAppliedCoupon(result);
-        Alert.alert('Success', `Coupon applied! You save ₹${result.discount?.toFixed(2) || '0.00'}`);
+        Alert.alert(
+          'Success',
+          `Coupon applied! You save ₹${result.discount?.toFixed(2) || '0.00'}`
+        );
       } else {
         setCouponError(result?.message || 'Invalid coupon code');
         setAppliedCoupon(null);
@@ -313,8 +328,11 @@ export default function CheckoutScreen() {
         <View style={{ width: 60 }} />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        
+      <ScrollView
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         {/* Shipping Address Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -339,7 +357,12 @@ export default function CheckoutScreen() {
                   onPress={() => setSelectedAddressId(address.id)}
                 >
                   <View style={styles.radioContainer}>
-                    <View style={[styles.radioOuter, selectedAddressId === address.id && styles.radioOuterSelected]}>
+                    <View
+                      style={[
+                        styles.radioOuter,
+                        selectedAddressId === address.id && styles.radioOuterSelected,
+                      ]}
+                    >
                       {selectedAddressId === address.id && <View style={styles.radioInner} />}
                     </View>
                   </View>
@@ -352,7 +375,9 @@ export default function CheckoutScreen() {
                         </View>
                       )}
                     </View>
-                    {address.mobile && <Text style={styles.addressDetail}>📱 {address.mobile}</Text>}
+                    {address.mobile && (
+                      <Text style={styles.addressDetail}>📱 {address.mobile}</Text>
+                    )}
                     <Text style={styles.addressDetail}>{address.street}</Text>
                     <Text style={styles.addressDetail}>
                       {address.city}, {address.state} {address.zip}
@@ -366,7 +391,10 @@ export default function CheckoutScreen() {
             <Text style={styles.noAddressText}>No saved addresses. Please add one below.</Text>
           )}
 
-          <TouchableOpacity style={styles.addAddressButton} onPress={() => setShowAddAddressModal(true)}>
+          <TouchableOpacity
+            style={styles.addAddressButton}
+            onPress={() => setShowAddAddressModal(true)}
+          >
             <FontAwesomeIcon icon={faPlus} size={14} color="#4F46E5" />
             <Text style={styles.addAddressButtonText}>Add New Address</Text>
           </TouchableOpacity>
@@ -384,7 +412,12 @@ export default function CheckoutScreen() {
             onPress={() => setDeliveryMethod('standard')}
           >
             <View style={styles.radioContainer}>
-              <View style={[styles.radioOuter, deliveryMethod === 'standard' && styles.radioOuterSelected]}>
+              <View
+                style={[
+                  styles.radioOuter,
+                  deliveryMethod === 'standard' && styles.radioOuterSelected,
+                ]}
+              >
                 {deliveryMethod === 'standard' && <View style={styles.radioInner} />}
               </View>
             </View>
@@ -401,7 +434,12 @@ export default function CheckoutScreen() {
             onPress={() => setDeliveryMethod('express')}
           >
             <View style={styles.radioContainer}>
-              <View style={[styles.radioOuter, deliveryMethod === 'express' && styles.radioOuterSelected]}>
+              <View
+                style={[
+                  styles.radioOuter,
+                  deliveryMethod === 'express' && styles.radioOuterSelected,
+                ]}
+              >
                 {deliveryMethod === 'express' && <View style={styles.radioInner} />}
               </View>
             </View>
@@ -427,11 +465,18 @@ export default function CheckoutScreen() {
             onPress={() => setPaymentMethod('card')}
           >
             <View style={styles.radioContainer}>
-              <View style={[styles.radioOuter, paymentMethod === 'card' && styles.radioOuterSelected]}>
+              <View
+                style={[styles.radioOuter, paymentMethod === 'card' && styles.radioOuterSelected]}
+              >
                 {paymentMethod === 'card' && <View style={styles.radioInner} />}
               </View>
             </View>
-            <FontAwesomeIcon icon={faCreditCard} size={20} color="#6B7280" style={styles.optionIcon} />
+            <FontAwesomeIcon
+              icon={faCreditCard}
+              size={20}
+              color="#6B7280"
+              style={styles.optionIcon}
+            />
             <Text style={styles.optionTitle}>Credit/Debit Card</Text>
           </TouchableOpacity>
 
@@ -440,11 +485,18 @@ export default function CheckoutScreen() {
             onPress={() => setPaymentMethod('bank')}
           >
             <View style={styles.radioContainer}>
-              <View style={[styles.radioOuter, paymentMethod === 'bank' && styles.radioOuterSelected]}>
+              <View
+                style={[styles.radioOuter, paymentMethod === 'bank' && styles.radioOuterSelected]}
+              >
                 {paymentMethod === 'bank' && <View style={styles.radioInner} />}
               </View>
             </View>
-            <FontAwesomeIcon icon={faBuilding} size={20} color="#6B7280" style={styles.optionIcon} />
+            <FontAwesomeIcon
+              icon={faBuilding}
+              size={20}
+              color="#6B7280"
+              style={styles.optionIcon}
+            />
             <Text style={styles.optionTitle}>Bank Transfer</Text>
           </TouchableOpacity>
 
@@ -453,11 +505,18 @@ export default function CheckoutScreen() {
             onPress={() => setPaymentMethod('upi')}
           >
             <View style={styles.radioContainer}>
-              <View style={[styles.radioOuter, paymentMethod === 'upi' && styles.radioOuterSelected]}>
+              <View
+                style={[styles.radioOuter, paymentMethod === 'upi' && styles.radioOuterSelected]}
+              >
                 {paymentMethod === 'upi' && <View style={styles.radioInner} />}
               </View>
             </View>
-            <FontAwesomeIcon icon={faMobileAlt} size={20} color="#6B7280" style={styles.optionIcon} />
+            <FontAwesomeIcon
+              icon={faMobileAlt}
+              size={20}
+              color="#6B7280"
+              style={styles.optionIcon}
+            />
             <Text style={styles.optionTitle}>UPI</Text>
           </TouchableOpacity>
         </View>
@@ -479,7 +538,7 @@ export default function CheckoutScreen() {
         {/* Order Summary Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitleSimple}>Order Summary</Text>
-          
+
           {/* Order Items */}
           <View style={styles.orderItemsContainer}>
             {cart.map((item: any) => (
@@ -498,11 +557,14 @@ export default function CheckoutScreen() {
               <View style={styles.appliedCoupon}>
                 <View style={styles.appliedCouponInfo}>
                   <FontAwesomeIcon icon={faCheck} size={14} color="#10B981" />
-                  <Text style={styles.appliedCouponCode}>{appliedCoupon.code || couponCode.toUpperCase()}</Text>
+                  <Text style={styles.appliedCouponCode}>
+                    {appliedCoupon.code || couponCode.toUpperCase()}
+                  </Text>
                 </View>
                 <View style={styles.appliedCouponDetails}>
                   <Text style={styles.appliedCouponDiscount}>
-                    {appliedCoupon.discountType === 'percentage' || appliedCoupon.discountType === 'PERCENTAGE'
+                    {appliedCoupon.discountType === 'percentage' ||
+                    appliedCoupon.discountType === 'PERCENTAGE'
                       ? `${appliedCoupon.discountValue}% off`
                       : `₹${appliedCoupon.discount?.toFixed(2)} off`}
                   </Text>

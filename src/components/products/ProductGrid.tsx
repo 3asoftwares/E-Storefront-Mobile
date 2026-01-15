@@ -162,9 +162,17 @@ export function ProductHorizontalList({
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>{title}</Text>
           {onSeeAll && (
-            <TouchableOpacity onPress={onSeeAll} style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TouchableOpacity
+              onPress={onSeeAll}
+              style={{ flexDirection: 'row', alignItems: 'center' }}
+            >
               <Text style={styles.seeAllText}>See All</Text>
-              <FontAwesomeIcon icon={faArrowRight} size={12} color={Colors.light.primary} style={{ marginLeft: 4 }} />
+              <FontAwesomeIcon
+                icon={faArrowRight}
+                size={12}
+                color={Colors.light.primary}
+                style={{ marginLeft: 4 }}
+              />
             </TouchableOpacity>
           )}
         </View>

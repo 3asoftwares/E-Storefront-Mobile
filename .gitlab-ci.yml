@@ -70,13 +70,13 @@ stages:
 # Install Stage
 # ============================================
 
-install_dependencies:
+Install Dependencies:
   stage: install
   script:
     - apk add --no-cache git
     - npm ci --cache .npm --prefer-offline
     - npm install -g eas-cli
-    - echo "Dependencies installed successfully"
+    - echo "✅ Dependencies installed successfully"
   cache:
     <<: *node_cache
     policy: push
@@ -89,12 +89,13 @@ install_dependencies:
 # Code Quality Stage
 # ============================================
 
-typecheck:
+TypeScript Check:
   stage: quality
   extends: .base_job
-  needs: ["install_dependencies"]
+  needs:
+    - job: Install Dependencies
   script:
-    - echo "Running TypeScript type checking..."
+    - echo "🔍 Running TypeScript type checking..."
     - npm run typecheck
   allow_failure: false
   rules:
@@ -102,12 +103,13 @@ typecheck:
     - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_COMMIT_BRANCH == "develop"
 
-lint:
+ESLint Check:
   stage: quality
   extends: .base_job
-  needs: ["install_dependencies"]
+  needs:
+    - job: Install Dependencies
   script:
-    - echo "Running ESLint..."
+    - echo "🔍 Running ESLint..."
     - npm run lint
   allow_failure: true
   rules:
@@ -115,12 +117,13 @@ lint:
     - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_COMMIT_BRANCH == "develop"
 
-format_check:
+Format Check:
   stage: quality
   extends: .base_job
-  needs: ["install_dependencies"]
+  needs:
+    - job: Install Dependencies
   script:
-    - echo "Checking code formatting..."
+    - echo "🔍 Checking code formatting..."
     - npm run format:check
   allow_failure: true
   rules:
@@ -130,14 +133,16 @@ format_check:
 # Test Stage
 # ============================================
 
-unit_tests:
+Unit Tests:
   stage: test
   extends: .base_job
-  needs: ["install_dependencies"]
+  needs:
+    - job: Install Dependencies
   script:
-    - echo "Running unit tests with coverage..."
+    - echo "🧪 Running unit tests with coverage..."
     - npm test -- --passWithNoTests --ci --coverage
   artifacts:
+    name: "coverage-${CI_COMMIT_SHORT_SHA}"
     paths:
       - coverage/
     expire_in: 1 day
@@ -151,12 +156,13 @@ unit_tests:
 # SonarCloud Stage
 # ============================================
 
-sonarcloud_check:
+SonarCloud Analysis:
   stage: sonar
   image:
     name: sonarsource/sonar-scanner-cli:latest
     entrypoint: [""]
-  needs: ["unit_tests"]
+  needs:
+    - job: Unit Tests
   variables:
     SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
     GIT_DEPTH: "0"
@@ -165,9 +171,10 @@ sonarcloud_check:
     paths:
       - .sonar/cache
   script:
+    - echo "📊 Running SonarCloud Analysis..."
     - |
       sonar-scanner \
-        -Dsonar.host.url=${SONAR_HOST_URL} \
+        -Dsonar.host.url=https://sonarcloud.io \
         -Dsonar.token=${SONAR_TOKEN}
   allow_failure: true
   rules:
@@ -179,58 +186,63 @@ sonarcloud_check:
 # Build Stage
 # ============================================
 
-build_web:
+Build Web:
   stage: build
   extends: .base_job
-  needs: ["typecheck"]
+  needs:
+    - job: TypeScript Check
   script:
-    - echo "Building web version..."
+    - echo "🌐 Building Web Application..."
     - npm run web:build
   artifacts:
+    name: "web-build-${CI_COMMIT_SHORT_SHA}"
     paths:
       - dist/
     expire_in: 1 week
   rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_COMMIT_BRANCH == "develop"
 
-build_android_preview:
+Build Android Preview:
   stage: build
   extends: .base_job
-  needs: ["typecheck"]
+  needs:
+    - job: TypeScript Check
   script:
-    - echo "Building Android APK (Preview)..."
+    - echo "🤖 Building Android Preview APK..."
     - npm install -g eas-cli
     - eas build --platform android --profile preview --non-interactive --no-wait
   environment:
     name: android-preview
     url: https://expo.dev
   rules:
-    - if: $CI_COMMIT_BRANCH == "develop"
-    - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "develop"
 
-build_ios_preview:
+Build iOS Preview:
   stage: build
   extends: .base_job
-  needs: ["typecheck"]
+  needs:
+    - job: TypeScript Check
   script:
-    - echo "Building iOS (Preview)..."
+    - echo "🍎 Building iOS Preview..."
     - npm install -g eas-cli
     - eas build --platform ios --profile preview --non-interactive --no-wait
   environment:
     name: ios-preview
     url: https://expo.dev
   rules:
-    - if: $CI_COMMIT_BRANCH == "develop"
-    - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "develop"
 
 # ============================================
 # Sync Stage - Push to GitHub after merge to main
 # ============================================
 
-sync_to_github:
+Sync to GitHub:
   stage: sync
   image: alpine:latest
   variables:
@@ -239,11 +251,12 @@ sync_to_github:
   before_script:
     - apk add --no-cache git
   script:
-    - echo "Syncing to GitHub..."
+    - echo "🔄 Syncing to GitHub..."
     - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/3asoftwares/E-Storefront-Mobile.git || true
     - git push github HEAD:main --force
-    - echo "Successfully synced to GitHub!"
+    - echo "✅ Successfully synced to GitHub!"
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
       when: on_success
-  needs: ["build_web"]
+  needs:
+    - job: Build Web

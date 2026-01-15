@@ -17,11 +17,11 @@ jest.mock('../../../config/env', () => ({
 }));
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { 
-  setAuthToken, 
-  getAuthToken, 
+import {
+  setAuthToken,
+  getAuthToken,
   clearAuthToken,
-  apolloClient 
+  apolloClient,
 } from '../../../lib/apollo/client';
 
 describe('Apollo Client', () => {
@@ -48,13 +48,13 @@ describe('Apollo Client', () => {
   describe('setAuthToken', () => {
     it('should store token in AsyncStorage', async () => {
       await setAuthToken('test-token-123');
-      
+
       expect(AsyncStorage.setItem).toHaveBeenCalledWith('accessToken', 'test-token-123');
     });
 
     it('should set global token', async () => {
       await setAuthToken('global-token');
-      
+
       expect((globalThis as any).__AUTH_TOKEN__).toBe('global-token');
     });
   });
@@ -62,26 +62,26 @@ describe('Apollo Client', () => {
   describe('getAuthToken', () => {
     it('should retrieve token from AsyncStorage', async () => {
       (AsyncStorage.getItem as jest.Mock).mockResolvedValue('stored-token');
-      
+
       const token = await getAuthToken();
-      
+
       expect(AsyncStorage.getItem).toHaveBeenCalledWith('accessToken');
       expect(token).toBe('stored-token');
     });
 
     it('should return null if no token stored', async () => {
       (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
-      
+
       const token = await getAuthToken();
-      
+
       expect(token).toBeNull();
     });
 
     it('should update global token', async () => {
       (AsyncStorage.getItem as jest.Mock).mockResolvedValue('fetched-token');
-      
+
       await getAuthToken();
-      
+
       expect((globalThis as any).__AUTH_TOKEN__).toBe('fetched-token');
     });
   });
@@ -89,15 +89,15 @@ describe('Apollo Client', () => {
   describe('clearAuthToken', () => {
     it('should remove token from AsyncStorage', async () => {
       await clearAuthToken();
-      
+
       expect(AsyncStorage.removeItem).toHaveBeenCalledWith('accessToken');
     });
 
     it('should clear global token', async () => {
       (globalThis as any).__AUTH_TOKEN__ = 'existing-token';
-      
+
       await clearAuthToken();
-      
+
       // After clear, token should be null or undefined
       expect((globalThis as any).__AUTH_TOKEN__ == null).toBe(true);
     });

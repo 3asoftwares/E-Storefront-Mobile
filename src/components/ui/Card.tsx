@@ -12,10 +12,10 @@ interface CardProps {
   activeOpacity?: number;
 }
 
-export function Card({ 
-  children, 
-  style, 
-  variant = 'elevated', 
+export function Card({
+  children,
+  style,
+  variant = 'elevated',
   padding = 'md',
   radius = 'lg',
   onPress,
@@ -97,32 +97,24 @@ export function Card({
   };
 
   const cardStyle = [
-    styles.card, 
-    getVariantStyle(), 
-    { 
+    styles.card,
+    getVariantStyle(),
+    {
       padding: getPaddingValue(),
       borderRadius: getBorderRadius(),
-    }, 
-    style
+    },
+    style,
   ];
 
   if (onPress) {
     return (
-      <TouchableOpacity 
-        style={cardStyle} 
-        onPress={onPress} 
-        activeOpacity={activeOpacity}
-      >
+      <TouchableOpacity style={cardStyle} onPress={onPress} activeOpacity={activeOpacity}>
         {children}
       </TouchableOpacity>
     );
   }
 
-  return (
-    <View style={cardStyle}>
-      {children}
-    </View>
-  );
+  return <View style={cardStyle}>{children}</View>;
 }
 
 const styles = StyleSheet.create({

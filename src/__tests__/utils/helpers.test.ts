@@ -133,11 +133,11 @@ describe('Helper Utilities', () => {
     it('should format relative dates', () => {
       const now = new Date();
       expect(formatDate(now, 'relative')).toBe('Today');
-      
+
       const yesterday = new Date(now);
       yesterday.setDate(yesterday.getDate() - 1);
       expect(formatDate(yesterday, 'relative')).toBe('Yesterday');
-      
+
       const lastWeek = new Date(now);
       lastWeek.setDate(lastWeek.getDate() - 5);
       expect(formatDate(lastWeek, 'relative')).toBe('5 days ago');

@@ -91,8 +91,8 @@ describe('AnimatedCard Component', () => {
 
   describe('Padding', () => {
     const paddings = ['none', 'xs', 'sm', 'md', 'lg', 'xl'] as const;
-    
-    paddings.forEach(padding => {
+
+    paddings.forEach((padding) => {
       it(`renders with ${padding} padding`, () => {
         const { getByText } = render(
           <AnimatedCard padding={padding}>
@@ -106,8 +106,8 @@ describe('AnimatedCard Component', () => {
 
   describe('Border Radius', () => {
     const radii = ['none', 'sm', 'md', 'lg', 'xl', '2xl', '3xl'] as const;
-    
-    radii.forEach(radius => {
+
+    radii.forEach((radius) => {
       it(`renders with ${radius} radius`, () => {
         const { getByText } = render(
           <AnimatedCard radius={radius}>
@@ -127,7 +127,7 @@ describe('AnimatedCard Component', () => {
           <Text>Pressable Card</Text>
         </AnimatedCard>
       );
-      
+
       fireEvent.press(getByText('Pressable Card'));
       expect(onPress).toHaveBeenCalled();
     });
@@ -139,13 +139,13 @@ describe('AnimatedCard Component', () => {
           <Text>Animated Press</Text>
         </AnimatedCard>
       );
-      
+
       const card = getByText('Animated Press');
       fireEvent(card, 'pressIn');
       jest.runAllTimers();
       fireEvent(card, 'pressOut');
       jest.runAllTimers();
-      
+
       expect(card).toBeTruthy();
     });
   });
@@ -157,7 +157,7 @@ describe('AnimatedCard Component', () => {
           <Text>Animated Mount</Text>
         </AnimatedCard>
       );
-      
+
       jest.runAllTimers();
       expect(getByText('Animated Mount')).toBeTruthy();
     });
@@ -168,7 +168,7 @@ describe('AnimatedCard Component', () => {
           <Text>No Animation</Text>
         </AnimatedCard>
       );
-      
+
       expect(getByText('No Animation')).toBeTruthy();
     });
 
@@ -178,7 +178,7 @@ describe('AnimatedCard Component', () => {
           <Text>Delayed Animation</Text>
         </AnimatedCard>
       );
-      
+
       jest.runAllTimers();
       expect(getByText('Delayed Animation')).toBeTruthy();
     });

@@ -12,30 +12,22 @@ describe('Input Component', () => {
   });
 
   it('renders correctly with placeholder', () => {
-    const { getByPlaceholderText } = render(
-      <Input placeholder="Enter text" />
-    );
+    const { getByPlaceholderText } = render(<Input placeholder="Enter text" />);
     expect(getByPlaceholderText('Enter text')).toBeTruthy();
   });
 
   it('renders with label', () => {
-    const { getByText } = render(
-      <Input label="Email" placeholder="Enter email" />
-    );
+    const { getByText } = render(<Input label="Email" placeholder="Enter email" />);
     expect(getByText('Email')).toBeTruthy();
   });
 
   it('displays error message when error prop is provided', () => {
-    const { getByText } = render(
-      <Input label="Email" error="Invalid email format" />
-    );
+    const { getByText } = render(<Input label="Email" error="Invalid email format" />);
     expect(getByText('Invalid email format')).toBeTruthy();
   });
 
   it('displays hint text when hint prop is provided', () => {
-    const { getByText } = render(
-      <Input label="Password" hint="At least 8 characters" />
-    );
+    const { getByText } = render(<Input label="Password" hint="At least 8 characters" />);
     expect(getByText('At least 8 characters')).toBeTruthy();
   });
 
@@ -53,11 +45,7 @@ describe('Input Component', () => {
     const onFocus = jest.fn();
     const onBlur = jest.fn();
     const { getByPlaceholderText } = render(
-      <Input 
-        placeholder="Enter text" 
-        onFocus={onFocus}
-        onBlur={onBlur}
-      />
+      <Input placeholder="Enter text" onFocus={onFocus} onBlur={onBlur} />
     );
 
     const input = getByPlaceholderText('Enter text');
@@ -70,39 +58,29 @@ describe('Input Component', () => {
 
   describe('Size Variants', () => {
     it('renders small size', () => {
-      const { getByPlaceholderText } = render(
-        <Input placeholder="Small" size="sm" />
-      );
+      const { getByPlaceholderText } = render(<Input placeholder="Small" size="sm" />);
       expect(getByPlaceholderText('Small')).toBeTruthy();
     });
 
     it('renders medium size', () => {
-      const { getByPlaceholderText } = render(
-        <Input placeholder="Medium" size="md" />
-      );
+      const { getByPlaceholderText } = render(<Input placeholder="Medium" size="md" />);
       expect(getByPlaceholderText('Medium')).toBeTruthy();
     });
 
     it('renders large size', () => {
-      const { getByPlaceholderText } = render(
-        <Input placeholder="Large" size="lg" />
-      );
+      const { getByPlaceholderText } = render(<Input placeholder="Large" size="lg" />);
       expect(getByPlaceholderText('Large')).toBeTruthy();
     });
   });
 
   describe('Variant Styles', () => {
     it('renders filled variant', () => {
-      const { getByPlaceholderText } = render(
-        <Input placeholder="Filled" variant="filled" />
-      );
+      const { getByPlaceholderText } = render(<Input placeholder="Filled" variant="filled" />);
       expect(getByPlaceholderText('Filled')).toBeTruthy();
     });
 
     it('renders outline variant', () => {
-      const { getByPlaceholderText } = render(
-        <Input placeholder="Outline" variant="outline" />
-      );
+      const { getByPlaceholderText } = render(<Input placeholder="Outline" variant="outline" />);
       expect(getByPlaceholderText('Outline')).toBeTruthy();
     });
 
@@ -116,9 +94,7 @@ describe('Input Component', () => {
 
   describe('Password Input', () => {
     it('renders as secure text entry', () => {
-      const { getByPlaceholderText } = render(
-        <Input placeholder="Password" secureTextEntry />
-      );
+      const { getByPlaceholderText } = render(<Input placeholder="Password" secureTextEntry />);
       const input = getByPlaceholderText('Password');
       expect(input.props.secureTextEntry).toBe(true);
     });
@@ -127,7 +103,7 @@ describe('Input Component', () => {
       const { getByPlaceholderText, getByTestId } = render(
         <Input placeholder="Password" secureTextEntry testID="password-input" />
       );
-      
+
       const input = getByPlaceholderText('Password');
       // Initially secure
       expect(input.props.secureTextEntry).toBe(true);
@@ -138,14 +114,9 @@ describe('Input Component', () => {
     it('shows clear button when showClear is true and has value', () => {
       const onClear = jest.fn();
       const { getByPlaceholderText } = render(
-        <Input 
-          placeholder="Clear me" 
-          value="some text"
-          showClear
-          onClear={onClear}
-        />
+        <Input placeholder="Clear me" value="some text" showClear onClear={onClear} />
       );
-      
+
       expect(getByPlaceholderText('Clear me')).toBeTruthy();
     });
   });
@@ -153,39 +124,25 @@ describe('Input Component', () => {
   describe('Floating Label', () => {
     it('renders with floating label', () => {
       const { getByText } = render(
-        <Input 
-          label="Float Label"
-          floatingLabel
-          placeholder="Enter value"
-        />
+        <Input label="Float Label" floatingLabel placeholder="Enter value" />
       );
       expect(getByText('Float Label')).toBeTruthy();
     });
 
     it('animates floating label when focused', () => {
       const { getByText, getByPlaceholderText } = render(
-        <Input 
-          label="Float Label"
-          floatingLabel
-          placeholder="Enter value"
-        />
+        <Input label="Float Label" floatingLabel placeholder="Enter value" />
       );
 
       const input = getByPlaceholderText('Enter value');
       fireEvent(input, 'focus');
       jest.runAllTimers();
-      
+
       expect(getByText('Float Label')).toBeTruthy();
     });
 
     it('animates floating label when has value', () => {
-      const { getByText } = render(
-        <Input 
-          label="Float Label"
-          floatingLabel
-          value="some value"
-        />
-      );
+      const { getByText } = render(<Input label="Float Label" floatingLabel value="some value" />);
 
       jest.runAllTimers();
       expect(getByText('Float Label')).toBeTruthy();

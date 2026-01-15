@@ -2,8 +2,30 @@ import { gql } from '@apollo/client';
 
 // ============== PRODUCT QUERIES ==============
 export const GET_PRODUCTS_QUERY = gql`
-  query GetProducts($page: Int, $limit: Int, $search: String, $category: String, $minPrice: Float, $maxPrice: Float, $sortBy: String, $sortOrder: String, $featured: Boolean, $includeInactive: Boolean) {
-    products(page: $page, limit: $limit, search: $search, category: $category, minPrice: $minPrice, maxPrice: $maxPrice, sortBy: $sortBy, sortOrder: $sortOrder, featured: $featured, includeInactive: $includeInactive) {
+  query GetProducts(
+    $page: Int
+    $limit: Int
+    $search: String
+    $category: String
+    $minPrice: Float
+    $maxPrice: Float
+    $sortBy: String
+    $sortOrder: String
+    $featured: Boolean
+    $includeInactive: Boolean
+  ) {
+    products(
+      page: $page
+      limit: $limit
+      search: $search
+      category: $category
+      minPrice: $minPrice
+      maxPrice: $maxPrice
+      sortBy: $sortBy
+      sortOrder: $sortOrder
+      featured: $featured
+      includeInactive: $includeInactive
+    ) {
       products {
         id
         name
@@ -31,7 +53,7 @@ export const GET_PRODUCTS_QUERY = gql`
 `;
 
 export const GET_PRODUCT_QUERY = gql`
-   query GetProduct($id: ID!) {
+  query GetProduct($id: ID!) {
     product(id: $id) {
       id
       name
@@ -99,7 +121,7 @@ export const LOGIN_MUTATION = gql`
 
 export const REGISTER_MUTATION = gql`
   mutation Register($input: RegisterInput!) {
-   register(input: $input) {
+    register(input: $input) {
       user {
         id
         name
@@ -217,7 +239,7 @@ export const GET_ORDER_QUERY = gql`
 `;
 
 export const CREATE_ORDER_MUTATION = gql`
-   mutation CreateOrder($input: CreateOrderInput!) {
+  mutation CreateOrder($input: CreateOrderInput!) {
     createOrder(input: $input) {
       order {
         id
@@ -317,7 +339,7 @@ export const GET_PRODUCT_REVIEWS_QUERY = gql`
 `;
 
 export const CREATE_REVIEW_MUTATION = gql`
- mutation CreateReview($productId: ID!, $input: CreateReviewInput!) {
+  mutation CreateReview($productId: ID!, $input: CreateReviewInput!) {
     createReview(productId: $productId, input: $input) {
       success
       message

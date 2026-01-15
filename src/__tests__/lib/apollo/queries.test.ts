@@ -1,4 +1,4 @@
-import { 
+import {
   GET_PRODUCTS_QUERY,
   GET_PRODUCT_QUERY,
   GET_CATEGORIES_QUERY,
@@ -19,7 +19,7 @@ describe('GraphQL Queries', () => {
     it('GET_PRODUCTS_QUERY should have correct structure', () => {
       expect(GET_PRODUCTS_QUERY.definitions).toBeDefined();
       expect(GET_PRODUCTS_QUERY.definitions.length).toBeGreaterThan(0);
-      
+
       const operation = GET_PRODUCTS_QUERY.definitions[0] as any;
       expect(operation.kind).toBe('OperationDefinition');
       expect(operation.operation).toBe('query');
@@ -28,20 +28,16 @@ describe('GraphQL Queries', () => {
 
     it('GET_PRODUCTS_QUERY should have pagination variables', () => {
       const operation = GET_PRODUCTS_QUERY.definitions[0] as any;
-      const variableNames = operation.variableDefinitions.map(
-        (v: any) => v.variable.name.value
-      );
-      
+      const variableNames = operation.variableDefinitions.map((v: any) => v.variable.name.value);
+
       expect(variableNames).toContain('page');
       expect(variableNames).toContain('limit');
     });
 
     it('GET_PRODUCTS_QUERY should have filter variables', () => {
       const operation = GET_PRODUCTS_QUERY.definitions[0] as any;
-      const variableNames = operation.variableDefinitions.map(
-        (v: any) => v.variable.name.value
-      );
-      
+      const variableNames = operation.variableDefinitions.map((v: any) => v.variable.name.value);
+
       expect(variableNames).toContain('search');
       expect(variableNames).toContain('category');
       expect(variableNames).toContain('minPrice');
@@ -57,10 +53,8 @@ describe('GraphQL Queries', () => {
       expect(operation.kind).toBe('OperationDefinition');
       expect(operation.operation).toBe('query');
       expect(operation.name.value).toBe('GetProduct');
-      
-      const variableNames = operation.variableDefinitions.map(
-        (v: any) => v.variable.name.value
-      );
+
+      const variableNames = operation.variableDefinitions.map((v: any) => v.variable.name.value);
       expect(variableNames).toContain('id');
     });
   });
@@ -91,9 +85,7 @@ describe('GraphQL Queries', () => {
 
     it('LOGIN_MUTATION should have input variable', () => {
       const operation = LOGIN_MUTATION.definitions[0] as any;
-      const variableNames = operation.variableDefinitions.map(
-        (v: any) => v.variable.name.value
-      );
+      const variableNames = operation.variableDefinitions.map((v: any) => v.variable.name.value);
       expect(variableNames).toContain('input');
     });
 
@@ -135,9 +127,7 @@ describe('GraphQL Queries', () => {
 
     it('GET_ORDERS_BY_CUSTOMER_QUERY should have customerId variable', () => {
       const operation = GET_ORDERS_BY_CUSTOMER_QUERY.definitions[0] as any;
-      const variableNames = operation.variableDefinitions.map(
-        (v: any) => v.variable.name.value
-      );
+      const variableNames = operation.variableDefinitions.map((v: any) => v.variable.name.value);
       expect(variableNames).toContain('customerId');
     });
 
@@ -147,9 +137,7 @@ describe('GraphQL Queries', () => {
 
     it('GET_ORDER_QUERY should have id variable', () => {
       const operation = GET_ORDER_QUERY.definitions[0] as any;
-      const variableNames = operation.variableDefinitions.map(
-        (v: any) => v.variable.name.value
-      );
+      const variableNames = operation.variableDefinitions.map((v: any) => v.variable.name.value);
       expect(variableNames).toContain('id');
     });
   });

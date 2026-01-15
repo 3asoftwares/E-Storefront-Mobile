@@ -44,10 +44,8 @@ const mockProducts = [
 describe('ProductGrid Component', () => {
   describe('Loading State', () => {
     it('shows skeletons when loading with no products', () => {
-      const { getAllByTestId } = render(
-        <ProductGrid products={[]} loading={true} />
-      );
-      
+      const { getAllByTestId } = render(<ProductGrid products={[]} loading={true} />);
+
       const skeletons = getAllByTestId('skeleton');
       expect(skeletons.length).toBe(6);
     });
@@ -56,7 +54,7 @@ describe('ProductGrid Component', () => {
       const { queryAllByTestId, getByText } = render(
         <ProductGrid products={mockProducts} loading={true} />
       );
-      
+
       expect(getByText('Product 1')).toBeTruthy();
       expect(queryAllByTestId('skeleton').length).toBe(0);
     });
@@ -65,10 +63,8 @@ describe('ProductGrid Component', () => {
   describe('Error State', () => {
     it('shows error message when error prop is provided', () => {
       const error = new Error('Network error');
-      const { getByText } = render(
-        <ProductGrid products={[]} error={error} />
-      );
-      
+      const { getByText } = render(<ProductGrid products={[]} error={error} />);
+
       expect(getByText('Error loading products')).toBeTruthy();
       expect(getByText('Network error')).toBeTruthy();
     });
@@ -79,32 +75,30 @@ describe('ProductGrid Component', () => {
       const { getByText } = render(
         <ProductGrid products={[]} error={error} onRefresh={onRefresh} />
       );
-      
+
       expect(getByText('Try Again')).toBeTruthy();
     });
   });
 
   describe('Empty State', () => {
     it('shows default empty state when no products', () => {
-      const { getByText } = render(
-        <ProductGrid products={[]} loading={false} />
-      );
-      
+      const { getByText } = render(<ProductGrid products={[]} loading={false} />);
+
       expect(getByText('No products found')).toBeTruthy();
       expect(getByText('Try adjusting your search or filters')).toBeTruthy();
     });
 
     it('shows custom empty state', () => {
       const { getByText } = render(
-        <ProductGrid 
-          products={[]} 
+        <ProductGrid
+          products={[]}
           loading={false}
           emptyTitle="Your cart is empty"
           emptyDescription="Start shopping now!"
           emptyActionLabel="Browse Products"
         />
       );
-      
+
       expect(getByText('Your cart is empty')).toBeTruthy();
       expect(getByText('Start shopping now!')).toBeTruthy();
     });
@@ -112,10 +106,8 @@ describe('ProductGrid Component', () => {
 
   describe('Products Display', () => {
     it('renders all products', () => {
-      const { getByText } = render(
-        <ProductGrid products={mockProducts} />
-      );
-      
+      const { getByText } = render(<ProductGrid products={mockProducts} />);
+
       expect(getByText('Product 1')).toBeTruthy();
       expect(getByText('Product 2')).toBeTruthy();
       expect(getByText('Product 3')).toBeTruthy();
@@ -125,12 +117,9 @@ describe('ProductGrid Component', () => {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { Text } = require('react-native');
       const { getByText } = render(
-        <ProductGrid 
-          products={mockProducts}
-          ListHeaderComponent={<Text>Header</Text>}
-        />
+        <ProductGrid products={mockProducts} ListHeaderComponent={<Text>Header</Text>} />
       );
-      
+
       expect(getByText('Header')).toBeTruthy();
       expect(getByText('Product 1')).toBeTruthy();
     });

@@ -17,12 +17,12 @@ config.resolver.sourceExts = [...config.resolver.sourceExts, 'mjs'];
 // Force specific packages to resolve from local node_modules only
 const localNodeModules = path.resolve(projectRoot, 'node_modules');
 config.resolver.extraNodeModules = {
-    'react': path.resolve(localNodeModules, 'react'),
-    'react-dom': path.resolve(localNodeModules, 'react-dom'),
-    'react-native': path.resolve(localNodeModules, 'react-native'),
-    'react-native-web': path.resolve(localNodeModules, 'react-native-web'),
-    'expo': path.resolve(localNodeModules, 'expo'),
-    'expo-router': path.resolve(localNodeModules, 'expo-router'),
+  react: path.resolve(localNodeModules, 'react'),
+  'react-dom': path.resolve(localNodeModules, 'react-dom'),
+  'react-native': path.resolve(localNodeModules, 'react-native'),
+  'react-native-web': path.resolve(localNodeModules, 'react-native-web'),
+  expo: path.resolve(localNodeModules, 'expo'),
+  'expo-router': path.resolve(localNodeModules, 'expo-router'),
 };
 
 // Performance optimizations for faster bundling

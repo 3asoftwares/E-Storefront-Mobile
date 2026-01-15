@@ -236,10 +236,12 @@ export function useCurrentUser() {
         return data.me;
       } catch (error: any) {
         // Check if it's an authentication error
-        const isAuthError = error?.graphQLErrors?.some(
-          (e: any) => e.extensions?.code === 'UNAUTHENTICATED' || e.message?.includes('Not authenticated')
-        ) || error?.message?.includes('Not authenticated');
-        
+        const isAuthError =
+          error?.graphQLErrors?.some(
+            (e: any) =>
+              e.extensions?.code === 'UNAUTHENTICATED' || e.message?.includes('Not authenticated')
+          ) || error?.message?.includes('Not authenticated');
+
         if (isAuthError) {
           // Clear auth state and throw to trigger redirect
           await clearAuthToken();
