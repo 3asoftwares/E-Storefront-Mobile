@@ -17,7 +17,7 @@ const GRAPHQL_ENDPOINT = getGraphQLUrl();
 
 const httpLink = new HttpLink({
     uri: GRAPHQL_ENDPOINT,
-    credentials: 'include',
+    credentials: Platform.OS === 'web' ? 'same-origin' : 'include',
 });
 
 // Auth link to add token to requests
@@ -105,5 +105,6 @@ export const initializeAuth = async () => {
 
 // Declare global type
 declare global {
-    var __AUTH_TOKEN__: string | null | undefined;
+  // eslint-disable-next-line no-var
+  var __AUTH_TOKEN__: string | null | undefined;
 }

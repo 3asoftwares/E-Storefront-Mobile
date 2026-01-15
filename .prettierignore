@@ -1,0 +1,30 @@
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+build
+.expo
+web-build
+
+# iOS/Android
+ios
+android
+
+# Cache
+.cache
+
+# Coverage
+coverage
+
+# Lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Environment
+.env*
+
+# IDE
+.idea
+.vscode

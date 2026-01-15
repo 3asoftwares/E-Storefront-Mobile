@@ -98,7 +98,37 @@ pipeline {
         }
         
         // ============================================
-        // Stage 4: Build Preview (Feature/Develop branches)
+        // Stage 4: Expo Link Check
+        // ============================================
+        stage('Link') {
+            steps {
+                bat '''
+                    echo Checking Expo linking configuration...
+                    npx expo-doctor@latest || exit 0
+                '''
+            }
+        }
+        
+        // ============================================
+        // Stage 5: Web Build
+        // ============================================
+        stage('Web Build') {
+            steps {
+                bat '''
+                    echo Building web application...
+                    npm run web:build
+                '''
+            }
+            post {
+                success {
+                    archiveArtifacts artifacts: 'dist/**/*', allowEmptyArchive: true
+                    echo 'Web build completed successfully!'
+                }
+            }
+        }
+        
+        // ============================================
+        // Stage 6: Build Preview (Feature/Develop branches)
         // ============================================
         stage('Build Preview') {
             when {
@@ -131,7 +161,7 @@ pipeline {
         }
         
         // ============================================
-        // Stage 5: Build Production APK/IPA (Main branch / Tags)
+        // Stage 7: Build Production APK/IPA (Main branch / Tags)
         // ============================================
         stage('Build Production') {
             when {
@@ -183,7 +213,7 @@ pipeline {
         }
         
         // ============================================
-        // Stage 6: OTA Update (Hotfixes)
+        // Stage 8: OTA Update (Hotfixes)
         // ============================================
         stage('OTA Update') {
             when {

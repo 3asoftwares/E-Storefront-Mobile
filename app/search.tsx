@@ -103,7 +103,7 @@ export default function SearchScreen() {
                             contentContainerStyle={styles.productList}
                             ListHeaderComponent={
                                 <Text style={styles.resultCount}>
-                                    {products.length} result{products.length !== 1 ? 's' : ''} for "{debouncedQuery}"
+                                    {products.length} result{products.length !== 1 ? 's' : ''} for &quot;{debouncedQuery}&quot;
                                 </Text>
                             }
                             showsVerticalScrollIndicator={false}

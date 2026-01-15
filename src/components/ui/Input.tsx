@@ -230,6 +230,7 @@ export function SearchInput({ onSearch, ...props }: SearchInputProps) {
             variant='filled'
             placeholder='Search products...'
             showClear
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
             leftIcon={<FontAwesomeIcon icon={require('@fortawesome/free-solid-svg-icons').faSearch} size={16} color={Colors.light.textTertiary} />}
             {...props}
         />

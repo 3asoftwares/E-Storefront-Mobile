@@ -4,6 +4,7 @@ import { render } from '@testing-library/react-native';
 // Mock dependencies
 jest.mock('../../components/products/ProductCard', () => ({
   ProductCard: ({ product }: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { Text } = require('react-native');
     return <Text>{product.name}</Text>;
   },
@@ -11,10 +12,12 @@ jest.mock('../../components/products/ProductCard', () => ({
 
 jest.mock('../../components/ui', () => ({
   ProductCardSkeleton: () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { View } = require('react-native');
     return <View testID="skeleton" />;
   },
   EmptyState: ({ title, description, actionLabel, onAction }: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { View, Text, TouchableOpacity } = require('react-native');
     return (
       <View>
@@ -119,6 +122,7 @@ describe('ProductGrid Component', () => {
     });
 
     it('renders with ListHeaderComponent', () => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { Text } = require('react-native');
       const { getByText } = render(
         <ProductGrid 

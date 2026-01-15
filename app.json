@@ -1,12 +1,12 @@
 {
   "expo": {
     "name": "3A Storefront",
-    "slug": "3a-storefront",
+    "slug": "3asoftwares",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "scheme": "3astorefront",
+    "scheme": "astorefront",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -17,7 +17,8 @@
       "bundleIdentifier": "com.3asoftwares.storefront",
       "infoPlist": {
         "NSCameraUsageDescription": "This app uses the camera to scan products and barcodes.",
-        "NSPhotoLibraryUsageDescription": "This app uses your photo library to upload profile pictures."
+        "NSPhotoLibraryUsageDescription": "This app uses your photo library to upload profile pictures.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -51,8 +52,15 @@
         "origin": false
       },
       "eas": {
-        "projectId": "your-project-id"
+        "projectId": "85fe0bff-5263-43ba-9a68-9bb93405a534"
       }
+    },
+    "owner": "3asoftwares",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/85fe0bff-5263-43ba-9a68-9bb93405a534"
     }
   }
 }

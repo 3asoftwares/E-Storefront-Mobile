@@ -177,7 +177,7 @@ export default function ProductDetailScreen() {
                 <View style={styles.errorContainer}>
                     <Text style={styles.errorEmoji}>😕</Text>
                     <Text style={styles.errorTitle}>Product not found</Text>
-                    <Text style={styles.errorText}>The product you're looking for doesn't exist or has been removed.</Text>
+                    <Text style={styles.errorText}>The product you&apos;re looking for doesn&apos;t exist or has been removed.</Text>
                     <TouchableOpacity style={styles.errorButton} onPress={() => router.push('/products')}>
                         <Text style={styles.errorButtonText}>Browse Products</Text>
                     </TouchableOpacity>

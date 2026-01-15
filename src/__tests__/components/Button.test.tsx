@@ -32,6 +32,7 @@ describe('Button Component', () => {
     );
     
     // Check that ActivityIndicator is rendered when loading
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const ActivityIndicator = require('react-native').ActivityIndicator;
     expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
   });

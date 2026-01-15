@@ -8,7 +8,6 @@ import { ApolloProvider } from '@apollo/client';
 import { apolloClient, initializeAuth } from '../src/lib/apollo/client';
 import { useEffect } from 'react';
 import { useCartStore } from '../src/store/cartStore';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 const queryClient = new QueryClient({
   defaultOptions: {

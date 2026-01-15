@@ -361,7 +361,7 @@ export default function ProductsScreen() {
                 <View style={styles.activeFilters}>
                     {debouncedSearch && (
                         <View style={styles.activeFilterChip}>
-                            <Text style={styles.activeFilterText}>"{debouncedSearch}"</Text>
+                            <Text style={styles.activeFilterText}>&quot;{debouncedSearch}&quot;</Text>
                             <TouchableOpacity
                                 onPress={() => {
                                     setSearch('');

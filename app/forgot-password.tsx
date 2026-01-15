@@ -52,14 +52,14 @@ export default function ForgotPasswordScreen() {
                 <View style={styles.successContainer}>
                     <Text style={styles.successEmoji}>📧</Text>
                     <Text style={styles.successTitle}>Check Your Email</Text>
-                    <Text style={styles.successText}>We've sent password reset instructions to:</Text>
+                    <Text style={styles.successText}>We&apos;ve sent password reset instructions to:</Text>
                     <Text style={styles.successEmail}>{email}</Text>
-                    <Text style={styles.successNote}>If you don't see the email, check your spam folder.</Text>
+                    <Text style={styles.successNote}>If you don&apos;t see the email, check your spam folder.</Text>
                     <TouchableOpacity style={styles.backToLoginButton} onPress={() => router.push('/login')}>
                         <Text style={styles.backToLoginButtonText}>Back to Sign In</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.resendButton} onPress={() => setEmailSent(false)}>
-                        <Text style={styles.resendButtonText}>Didn't receive the email? Try again</Text>
+                        <Text style={styles.resendButtonText}>Didn&apos;t receive the email? Try again</Text>
                     </TouchableOpacity>
                 </View>
             </SafeAreaView>
@@ -81,7 +81,7 @@ export default function ForgotPasswordScreen() {
                     <View style={styles.header}>
                         <Text style={styles.icon}>🔐</Text>
                         <Text style={styles.title}>Forgot Password?</Text>
-                        <Text style={styles.subtitle}>No worries! Enter your email address and we'll send you instructions to reset your password.</Text>
+                        <Text style={styles.subtitle}>No worries! Enter your email address and we&apos;ll send you instructions to reset your password.</Text>
                     </View>
 
                     {/* Form */}

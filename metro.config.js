@@ -27,14 +27,15 @@ config.resolver.extraNodeModules = {
 
 // Performance optimizations for faster bundling
 config.transformer = {
-    ...config.transformer,
-    minifierConfig: {
-        keep_classnames: false,
-        keep_fnames: false,
-        mangle: true,
-        reserved: [],
-        toplevel: false,
+  ...config.transformer,
+  minifierConfig: {
+    keep_classnames: false,
+    keep_fnames: false,
+    mangle: {
+      reserved: [],
     },
+    toplevel: false,
+  },
 };
 
 // Increase max workers for faster bundling

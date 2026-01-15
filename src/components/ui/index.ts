@@ -7,5 +7,4 @@ export { Loading, Skeleton, ProductCardSkeleton, ListSkeleton } from './Loading'
 export { EmptyState, ErrorState, NoResults } from './EmptyState';
 export { Icon, IconWithBadge } from './Icon';
 export { GradientHeader, SearchHeader } from './GradientHeader';
-export { ModernProductCard } from './ModernProductCard';
 export type { IconName } from './Icon';
