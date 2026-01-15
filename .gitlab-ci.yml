@@ -207,8 +207,24 @@ build_android_preview:
     url: https://expo.dev
   rules:
     - if: $CI_COMMIT_BRANCH == "develop"
+    - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: manual
+
+build_ios_preview:
+  stage: build
+  extends: .base_job
+  needs: ["typecheck"]
+  script:
+    - echo "Building iOS (Preview)..."
+    - npm install -g eas-cli
+    - eas build --platform ios --profile preview --non-interactive --no-wait
+  environment:
+    name: ios-preview
+    url: https://expo.dev
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop"
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
 # ============================================
 # Sync Stage - Push to GitHub after merge to main
