@@ -34,7 +34,7 @@ function SecurityMenuItem({
   onPress,
   rightElement,
 }: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   icon: any;
   title: string;
   subtitle?: string;

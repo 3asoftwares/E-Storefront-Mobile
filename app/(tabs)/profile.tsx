@@ -26,6 +26,7 @@ import {
   faSignOutAlt,
   faChevronRight,
   faUser,
+  faSearch,
 } from '@fortawesome/free-solid-svg-icons';
 import { useCartStore } from '../../src/store/cartStore';
 import { useCurrentUser, useLogout, useOrders } from '../../src/lib/hooks';

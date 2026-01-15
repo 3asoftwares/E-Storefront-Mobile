@@ -37,7 +37,7 @@ const { width } = Dimensions.get('window');
 function ImageCarousel({ images }: { images: string[] }) {
   const [activeIndex, setActiveIndex] = useState(0);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleScroll = (event: any) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
     const index = Math.round(scrollPosition / width);
@@ -190,7 +190,7 @@ export default function ProductDetailScreen() {
         image: product.imageUrl || 'https://via.placeholder.com/200',
       });
     }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product]);
 
   const handleAddToCart = () => {

@@ -173,22 +173,13 @@ SonarCloud Analysis:
     - echo "📊 Running SonarCloud Analysis..."
     - echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     - echo "📋 SonarCloud Configuration:"
-    - echo "   Project Key: 3asoftwares_E-Storefront-Mobile"
-    - echo "   Organization: 3asoftwares"
-    - echo "   Host URL: https://sonarcloud.io"
-    - echo "   Branch: ${CI_COMMIT_REF_NAME}"
-    - |
-      if [ -z "$SONAR_TOKEN" ]; then
-        echo "   ❌ SONAR_TOKEN: NOT SET!"
-      else
-        echo "   ✅ SONAR_TOKEN: Set (length: ${#SONAR_TOKEN} chars)"
-      fi
+    - echo "   Project Key - 3asoftwares_E-Storefront-Mobile"
+    - echo "   Organization - 3asoftwares"
+    - echo "   Host URL - https://sonarcloud.io"
+    - echo "   Branch - ${CI_COMMIT_REF_NAME}"
+    - if [ -z "$SONAR_TOKEN" ]; then echo "   ❌ SONAR_TOKEN NOT SET!"; else echo "   ✅ SONAR_TOKEN is set"; fi
     - echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    - |
-      sonar-scanner \
-        -Dsonar.host.url=https://sonarcloud.io \
-        -Dsonar.token=${SONAR_TOKEN} \
-        -Dsonar.branch.name=${CI_COMMIT_REF_NAME}
+    - sonar-scanner -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=${SONAR_TOKEN} -Dsonar.branch.name=${CI_COMMIT_REF_NAME}
   allow_failure: true
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -232,14 +223,7 @@ Build Android Preview:
     - job: SonarCloud Analysis
   script:
     - echo "🤖 Building Android Preview APK..."
-    - |
-      if [ -z "$EXPO_TOKEN" ]; then
-        echo "❌ ERROR: EXPO_TOKEN is not set!"
-        echo "Please add EXPO_TOKEN to GitLab CI/CD Variables"
-        exit 1
-      else
-        echo "✅ EXPO_TOKEN is set (length: ${#EXPO_TOKEN} chars)"
-      fi
+    - if [ -z "$EXPO_TOKEN" ]; then echo "❌ EXPO_TOKEN not set!" && exit 1; else echo "✅ EXPO_TOKEN is set"; fi
     - npm install -g eas-cli
     - eas whoami
     - eas build --platform android --profile preview --non-interactive --no-wait
@@ -262,14 +246,7 @@ Build iOS Preview:
     - job: SonarCloud Analysis
   script:
     - echo "🍎 Building iOS Preview..."
-    - |
-      if [ -z "$EXPO_TOKEN" ]; then
-        echo "❌ ERROR: EXPO_TOKEN is not set!"
-        echo "Please add EXPO_TOKEN to GitLab CI/CD Variables"
-        exit 1
-      else
-        echo "✅ EXPO_TOKEN is set (length: ${#EXPO_TOKEN} chars)"
-      fi
+    - if [ -z "$EXPO_TOKEN" ]; then echo "❌ EXPO_TOKEN not set!" && exit 1; else echo "✅ EXPO_TOKEN is set"; fi
     - npm install -g eas-cli
     - eas whoami
     - eas build --platform ios --profile preview --non-interactive --no-wait

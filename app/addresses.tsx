@@ -32,7 +32,7 @@ function AddressCard({
   onEdit,
   onDelete,
 }: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   address: any;
   isDefault: boolean;
   onSetDefault: () => void;
@@ -81,9 +81,9 @@ function AddressModal({
 }: {
   visible: boolean;
   onClose: () => void;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onSave: (data: any) => void;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialData?: any;
   isLoading: boolean;
 }) {

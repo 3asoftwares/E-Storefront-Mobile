@@ -34,7 +34,7 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
-    const { login, isLoading, error: _error } = useLogin();
+  const { login, isLoading, error: _error } = useLogin();
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
@@ -67,8 +67,8 @@ export default function LoginScreen() {
         router.replace('/(tabs)');
       }
     } catch (err: unknown) {
-        const error = err as Error;
-        const message = error?.message || 'Login failed. Please try again.';
+      const error = err as Error;
+      const message = error?.message || 'Login failed. Please try again.';
       Alert.alert('Login Failed', message);
     }
   };
