@@ -175,7 +175,8 @@ SonarCloud Analysis:
     - |
       sonar-scanner \
         -Dsonar.host.url=https://sonarcloud.io \
-        -Dsonar.token=${SONAR_TOKEN}
+        -Dsonar.token=${SONAR_TOKEN} \
+        -Dsonar.branch.name=${CI_COMMIT_REF_NAME}
   allow_failure: true
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -191,6 +192,10 @@ Build Web:
   extends: .base_job
   needs:
     - job: TypeScript Check
+    - job: ESLint Check
+    - job: Format Check
+    - job: Unit Tests
+    - job: SonarCloud Analysis
   script:
     - echo "🌐 Building Web Application..."
     - npm run web:build
@@ -209,6 +214,10 @@ Build Android Preview:
   extends: .base_job
   needs:
     - job: TypeScript Check
+    - job: ESLint Check
+    - job: Format Check
+    - job: Unit Tests
+    - job: SonarCloud Analysis
   script:
     - echo "🤖 Building Android Preview APK..."
     - npm install -g eas-cli
@@ -226,6 +235,10 @@ Build iOS Preview:
   extends: .base_job
   needs:
     - job: TypeScript Check
+    - job: ESLint Check
+    - job: Format Check
+    - job: Unit Tests
+    - job: SonarCloud Analysis
   script:
     - echo "🍎 Building iOS Preview..."
     - npm install -g eas-cli
