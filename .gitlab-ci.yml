@@ -173,15 +173,13 @@ SonarCloud Analysis:
     - echo "📊 Running SonarCloud Analysis..."
     - echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     - echo "📋 SonarCloud Configuration:"
-    - echo "   Project Key - 3asoftwares_E-Storefront-Mobile"
-    - echo "   Organization - 3asoftwares"
-    - echo "   Host URL - https://sonarcloud.io"
+    - cat sonar-project.properties | grep -E "^sonar\.(projectKey|projectName|organization|host\.url)" || true
     - echo "   Branch - ${CI_COMMIT_REF_NAME}"
-    - if [ -z "$SONAR_TOKEN" ]; then echo "   ❌ SONAR_TOKEN NOT SET!"; else echo "   ✅ SONAR_TOKEN is set"; fi
+    - echo "   SONAR_TOKEN - ${SONAR_TOKEN}"
     - echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     - sonar-scanner -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=${SONAR_TOKEN} -Dsonar.branch.name=${CI_COMMIT_REF_NAME}
   allow_failure: true
-  rules:
+  rules:  
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_COMMIT_BRANCH == "develop"
@@ -223,7 +221,7 @@ Build Android Preview:
     - job: SonarCloud Analysis
   script:
     - echo "🤖 Building Android Preview APK..."
-    - if [ -z "$EXPO_TOKEN" ]; then echo "❌ EXPO_TOKEN not set!" && exit 1; else echo "✅ EXPO_TOKEN is set"; fi
+    - echo "EXPO_TOKEN - ${EXPO_TOKEN}"
     - npm install -g eas-cli
     - eas whoami
     - eas build --platform android --profile preview --non-interactive --no-wait
@@ -246,7 +244,7 @@ Build iOS Preview:
     - job: SonarCloud Analysis
   script:
     - echo "🍎 Building iOS Preview..."
-    - if [ -z "$EXPO_TOKEN" ]; then echo "❌ EXPO_TOKEN not set!" && exit 1; else echo "✅ EXPO_TOKEN is set"; fi
+    - echo "EXPO_TOKEN - ${EXPO_TOKEN}"
     - npm install -g eas-cli
     - eas whoami
     - eas build --platform ios --profile preview --non-interactive --no-wait
