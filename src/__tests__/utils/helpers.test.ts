@@ -377,4 +377,125 @@ describe('Helper Utilities', () => {
       expect(Object.keys(grouped).length).toBe(0);
     });
   });
+
+  describe('Async Utilities', () => {
+    describe('debounce', () => {
+      beforeEach(() => {
+        jest.useFakeTimers();
+      });
+
+      afterEach(() => {
+        jest.useRealTimers();
+      });
+
+      it('should debounce function calls', () => {
+        const mockFn = jest.fn();
+        const debounced = require('../../utils/helpers').debounce(mockFn, 100);
+
+        debounced();
+        debounced();
+        debounced();
+
+        expect(mockFn).not.toHaveBeenCalled();
+
+        jest.advanceTimersByTime(100);
+        expect(mockFn).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('throttle', () => {
+      beforeEach(() => {
+        jest.useFakeTimers();
+      });
+
+      afterEach(() => {
+        jest.useRealTimers();
+      });
+
+      it('should throttle function calls', () => {
+        const mockFn = jest.fn();
+        const throttled = require('../../utils/helpers').throttle(mockFn, 100);
+
+        throttled();
+        throttled();
+        throttled();
+
+        expect(mockFn).toHaveBeenCalledTimes(1);
+
+        jest.advanceTimersByTime(100);
+        throttled();
+
+        expect(mockFn).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    describe('sleep', () => {
+      it('should delay execution', async () => {
+        const start = Date.now();
+        const { sleep } = require('../../utils/helpers');
+        await sleep(100);
+        const elapsed = Date.now() - start;
+        expect(elapsed).toBeGreaterThanOrEqual(90);
+      });
+    });
+  });
+
+  describe('Alert Utilities', () => {
+    const Alert = require('react-native').Alert;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    describe('showAlert', () => {
+      it('should show alert on mobile', () => {
+        const { showAlert } = require('../../utils/helpers');
+        showAlert('Test Title', 'Test Message');
+
+        expect(Alert.alert).toHaveBeenCalledWith('Test Title', 'Test Message');
+      });
+
+      it('should show alert without message', () => {
+        const { showAlert } = require('../../utils/helpers');
+        showAlert('Test Title');
+
+        expect(Alert.alert).toHaveBeenCalledWith('Test Title', undefined);
+      });
+    });
+
+    describe('showConfirm', () => {
+      it('should show confirmation dialog', () => {
+        const { showConfirm } = require('../../utils/helpers');
+        const onConfirm = jest.fn();
+        const onCancel = jest.fn();
+
+        showConfirm('Confirm', 'Are you sure?', onConfirm, onCancel);
+
+        expect(Alert.alert).toHaveBeenCalledWith(
+          'Confirm',
+          'Are you sure?',
+          expect.arrayContaining([
+            expect.objectContaining({ text: 'Cancel', style: 'cancel' }),
+            expect.objectContaining({ text: 'OK', style: 'destructive' }),
+          ])
+        );
+      });
+
+      it('should use custom button labels', () => {
+        const { showConfirm } = require('../../utils/helpers');
+        const onConfirm = jest.fn();
+
+        showConfirm('Delete', 'Delete item?', onConfirm, undefined, 'Delete', 'Keep');
+
+        expect(Alert.alert).toHaveBeenCalledWith(
+          'Delete',
+          'Delete item?',
+          expect.arrayContaining([
+            expect.objectContaining({ text: 'Keep' }),
+            expect.objectContaining({ text: 'Delete' }),
+          ])
+        );
+      });
+    });
+  });
 });

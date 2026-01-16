@@ -3,9 +3,11 @@
 
 export const ENV = {
   // GraphQL API
-  GRAPHQL_URL: process.env.EXPO_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql',
+  GRAPHQL_URL:
+    process.env.EXPO_PUBLIC_GRAPHQL_URL || 'https://e-graphql-gateway.up.railway.app/graphql',
   GRAPHQL_URL_MOBILE:
-    process.env.EXPO_PUBLIC_GRAPHQL_URL_MOBILE || 'http://192.168.1.100:4000/graphql',
+    process.env.EXPO_PUBLIC_GRAPHQL_URL_MOBILE ||
+    'https://e-graphql-gateway.up.railway.app/graphql',
 } as const;
 
 // Helper to check if we're in development

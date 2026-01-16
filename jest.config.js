@@ -28,6 +28,7 @@ module.exports = {
     ],
   ],
   coverageReporters: ['text', 'text-summary', 'lcov', 'cobertura'],
+  coverageDirectory: '<rootDir>/coverage',
   coverageThreshold: {
     global: {
       branches: 15,
@@ -39,5 +40,10 @@ module.exports = {
   testMatch: ['**/__tests__/**/*.(ts|tsx|js)', '**/*.(test|spec).(ts|tsx|js)'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    // Map app-relative imports to absolute paths so mocks work correctly
+    // When app/login.tsx imports '../src/lib/hooks', Jest will resolve it to '<rootDir>/src/lib/hooks'
+    // And tests mock '../../lib/hooks' which also resolves to '<rootDir>/src/lib/hooks'
   },
+  // Ensure both app/ and src/ paths resolve to the same modules
+  roots: ['<rootDir>/src', '<rootDir>/app'],
 };

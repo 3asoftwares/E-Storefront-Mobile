@@ -99,12 +99,98 @@ describe('Apollo Client', () => {
 
       await clearAuthToken();
 
+      expect((globalThis as any).__AUTH_TOKEN__).toBeNull();
+    });
+
+    it('should remove refreshToken from AsyncStorage', async () => {
+      await clearAuthToken();
+
+      expect(AsyncStorage.removeItem).toHaveBeenCalledWith('refreshToken');
+    });
+
+    it('should remove user from AsyncStorage', async () => {
+      await clearAuthToken();
+
+      expect(AsyncStorage.removeItem).toHaveBeenCalledWith('user');
+    });
+  });
+
+  describe('Token Management Integration', () => {
+    it('should handle complete auth flow', async () => {
+      // Set token
+      await setAuthToken('flow-token');
+      expect((globalThis as any).__AUTH_TOKEN__).toBe('flow-token');
+
+      // Get token
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue('flow-token');
+      const retrieved = await getAuthToken();
+      expect(retrieved).toBe('flow-token');
+
+      // Clear token
+      await clearAuthToken();
+      expect((globalThis as any).__AUTH_TOKEN__).toBeNull();
+    });
+
+    it('should handle null tokens gracefully', async () => {
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
+
+      const token = await getAuthToken();
+      expect(token).toBeNull();
+      expect((globalThis as any).__AUTH_TOKEN__).toBeNull();
+    });
+  });
+
+  describe('Error Scenarios', () => {
+    afterEach(() => {
+      // Reset mocks after error tests
+      jest.clearAllMocks();
+      (AsyncStorage.setItem as jest.Mock).mockResolvedValue(undefined);
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
+      (AsyncStorage.removeItem as jest.Mock).mockResolvedValue(undefined);
+    });
+
+    it('should handle AsyncStorage errors when setting token', async () => {
+      (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(new Error('Storage error'));
+
+      await expect(setAuthToken('test-token')).rejects.toThrow('Storage error');
+    });
+
+    it('should handle AsyncStorage errors when getting token', async () => {
+      (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(new Error('Storage error'));
+
+      await expect(getAuthToken()).rejects.toThrow('Storage error');
+    });
+
+    it('should handle AsyncStorage errors when clearing token', async () => {
+      (AsyncStorage.removeItem as jest.Mock).mockRejectedValueOnce(new Error('Storage error'));
+
+      await expect(clearAuthToken()).rejects.toThrow('Storage error');
+    });
+
+    it('should clear token successfully', async () => {
+      // Reset mock to not throw
+      (AsyncStorage.setItem as jest.Mock).mockResolvedValue(undefined);
+      (AsyncStorage.removeItem as jest.Mock).mockResolvedValue(undefined);
+      
+      // Set a token first
+      await setAuthToken('test-token');
+
+      // Clear the token
+      await clearAuthToken();
+
       // After clear, token should be null or undefined
       expect((globalThis as any).__AUTH_TOKEN__ == null).toBe(true);
     });
   });
 
   describe('Token Flow', () => {
+    beforeEach(() => {
+      // Reset mocks before each token flow test
+      (AsyncStorage.setItem as jest.Mock).mockResolvedValue(undefined);
+      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
+      (AsyncStorage.removeItem as jest.Mock).mockResolvedValue(undefined);
+    });
+
     it('should handle full token lifecycle', async () => {
       // Set token
       await setAuthToken('lifecycle-token');

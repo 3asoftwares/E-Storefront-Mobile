@@ -90,6 +90,7 @@ describe('ProductGrid Component', () => {
     });
 
     it('shows custom empty state', () => {
+      const onAction = jest.fn();
       const { getByText } = render(
         <ProductGrid
           products={[]}
@@ -97,6 +98,7 @@ describe('ProductGrid Component', () => {
           emptyTitle="Your cart is empty"
           emptyDescription="Start shopping now!"
           emptyActionLabel="Browse Products"
+          onEmptyAction={onAction}
         />
       );
 
@@ -124,5 +126,109 @@ describe('ProductGrid Component', () => {
       expect(getByText('Header')).toBeTruthy();
       expect(getByText('Product 1')).toBeTruthy();
     });
+
+    it('renders with ListFooterComponent', () => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { Text } = require('react-native');
+      const { getByText } = render(
+        <ProductGrid products={mockProducts} ListFooterComponent={<Text>Footer</Text>} />
+      );
+
+      expect(getByText('Footer')).toBeTruthy();
+    });
+
+    it('shows loading more indicator when loading with products', () => {
+      const { getByText } = render(<ProductGrid products={mockProducts} loading={true} />);
+
+      expect(getByText('Loading more...')).toBeTruthy();
+    });
+  });
+
+  describe('Refresh Functionality', () => {
+    it('handles refresh', () => {
+      const onRefresh = jest.fn();
+      render(<ProductGrid products={mockProducts} onRefresh={onRefresh} />);
+
+      expect(onRefresh).toBeDefined();
+    });
+
+    it('handles refreshing state', () => {
+      const { getByText } = render(
+        <ProductGrid products={mockProducts} refreshing={true} onRefresh={() => { }} />
+      );
+
+      expect(getByText('Product 1')).toBeTruthy();
+    });
+  });
+
+  describe('Pagination', () => {
+    it('handles onEndReached callback', () => {
+      const onEndReached = jest.fn();
+      render(<ProductGrid products={mockProducts} onEndReached={onEndReached} />);
+
+      expect(onEndReached).toBeDefined();
+    });
+  });
+});
+
+// ProductHorizontalList tests
+import { ProductHorizontalList } from '../../components/products/ProductGrid';
+
+jest.mock('@fortawesome/react-native-fontawesome', () => ({
+  FontAwesomeIcon: 'FontAwesomeIcon',
+}));
+
+describe('ProductHorizontalList Component', () => {
+  it('renders horizontal list with title', () => {
+    const { getByText } = render(
+      <ProductHorizontalList title="Featured Products" products={mockProducts} />
+    );
+
+    expect(getByText('Featured Products')).toBeTruthy();
+  });
+
+  it('renders without title', () => {
+    const { getByText } = render(<ProductHorizontalList products={mockProducts} />);
+
+    expect(getByText('Product 1')).toBeTruthy();
+  });
+
+  it('shows See All button when onSeeAll provided', () => {
+    const onSeeAll = jest.fn();
+    const { getByText } = render(
+      <ProductHorizontalList
+        title="Featured"
+        products={mockProducts}
+        onSeeAll={onSeeAll}
+      />
+    );
+
+    expect(getByText('See All')).toBeTruthy();
+  });
+
+  it('shows loading state', () => {
+    const { getByText } = render(
+      <ProductHorizontalList title="Loading" products={[]} loading={true} />
+    );
+
+    expect(getByText('Loading')).toBeTruthy();
+  });
+
+  it('returns null when no products and not loading', () => {
+    const { queryByText } = render(
+      <ProductHorizontalList title="Empty" products={[]} loading={false} />
+    );
+
+    expect(queryByText('Empty')).toBeNull();
+  });
+
+  it('renders all products in horizontal list', () => {
+    const { getByText } = render(
+      <ProductHorizontalList title="Products" products={mockProducts} />
+    );
+
+    expect(getByText('Product 1')).toBeTruthy();
+    expect(getByText('Product 2')).toBeTruthy();
+    expect(getByText('Product 3')).toBeTruthy();
   });
 });

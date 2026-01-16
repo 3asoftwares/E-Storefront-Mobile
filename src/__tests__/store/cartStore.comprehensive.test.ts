@@ -478,5 +478,208 @@ describe('Cart Store', () => {
       const state = useCartStore.getState();
       expect(state.userProfile).toBeNull();
     });
+
+    it('should update address', () => {
+      const { addAddress, updateAddress } = useCartStore.getState();
+
+      act(() => {
+        addAddress(mockAddress);
+        updateAddress('addr-1', { city: 'Boston', state: 'MA' });
+      });
+
+      const state = useCartStore.getState();
+      const updatedAddress = state.userProfile?.addresses?.find((a: any) => a.id === 'addr-1');
+      expect(updatedAddress?.city).toBe('Boston');
+      expect(updatedAddress?.state).toBe('MA');
+    });
+
+    it('should not update address if no user profile', () => {
+      act(() => {
+        useCartStore.setState({ userProfile: null });
+      });
+
+      const { updateAddress } = useCartStore.getState();
+
+      act(() => {
+        updateAddress('addr-1', { city: 'Boston' });
+      });
+
+      const state = useCartStore.getState();
+      expect(state.userProfile).toBeNull();
+    });
+
+    it('should remove address', () => {
+      const { addAddress, removeAddress } = useCartStore.getState();
+
+      act(() => {
+        addAddress(mockAddress);
+        addAddress({ ...mockAddress, id: 'addr-2', label: 'Work' });
+        removeAddress('addr-1');
+      });
+
+      const state = useCartStore.getState();
+      expect(state.userProfile?.addresses?.length).toBe(1);
+      expect(state.userProfile?.addresses?.[0].id).toBe('addr-2');
+    });
+
+    it('should not remove address if no user profile', () => {
+      act(() => {
+        useCartStore.setState({ userProfile: null });
+      });
+
+      const { removeAddress } = useCartStore.getState();
+
+      act(() => {
+        removeAddress('addr-1');
+      });
+
+      const state = useCartStore.getState();
+      expect(state.userProfile).toBeNull();
+    });
+
+    it('should set default address', () => {
+      const { addAddress, setDefaultAddress } = useCartStore.getState();
+
+      act(() => {
+        addAddress(mockAddress);
+        setDefaultAddress('addr-1');
+      });
+
+      const state = useCartStore.getState();
+      expect(state.userProfile?.defaultAddressId).toBe('addr-1');
+    });
+
+    it('should not set default address if no user profile', () => {
+      act(() => {
+        useCartStore.setState({ userProfile: null });
+      });
+
+      const { setDefaultAddress } = useCartStore.getState();
+
+      act(() => {
+        setDefaultAddress('addr-1');
+      });
+
+      const state = useCartStore.getState();
+      expect(state.userProfile).toBeNull();
+    });
+  });
+
+  describe('Cart Alias', () => {
+    it('should access items through items array', () => {
+      const { addItem } = useCartStore.getState();
+      const mockItem = {
+        id: 'item-1',
+        productId: 'product-1',
+        name: 'Test Product',
+        price: 29.99,
+        quantity: 1,
+      };
+
+      act(() => {
+        addItem(mockItem);
+      });
+
+      const state = useCartStore.getState();
+      expect(state.items.length).toBe(1);
+      expect(state.items[0].name).toBe('Test Product');
+    });
+  });
+
+  describe('Wishlist with ID alias', () => {
+    it('should add item using id field', () => {
+      const { addToWishlist } = useCartStore.getState();
+
+      act(() => {
+        addToWishlist({
+          id: 'product-1',
+          productId: '',
+          name: 'Product',
+          price: 100,
+        });
+      });
+
+      const state = useCartStore.getState();
+      expect(state.wishlist.length).toBe(1);
+    });
+
+    it('should not add duplicate using id field', () => {
+      const { addToWishlist } = useCartStore.getState();
+
+      act(() => {
+        addToWishlist({
+          id: 'product-1',
+          productId: '',
+          name: 'Product',
+          price: 100,
+        });
+        addToWishlist({
+          id: 'product-1',
+          productId: '',
+          name: 'Product',
+          price: 100,
+        });
+      });
+
+      const state = useCartStore.getState();
+      expect(state.wishlist.length).toBe(1);
+    });
+
+    it('should remove from wishlist using id field', () => {
+      const { addToWishlist, removeFromWishlist } = useCartStore.getState();
+
+      act(() => {
+        addToWishlist({
+          id: 'product-1',
+          productId: '',
+          name: 'Product',
+          price: 100,
+        });
+        removeFromWishlist('product-1');
+      });
+
+      const state = useCartStore.getState();
+      expect(state.wishlist.length).toBe(0);
+    });
+  });
+
+  describe('Update quantity by productId', () => {
+    it('should update quantity by productId', () => {
+      const { addItem, updateQuantity } = useCartStore.getState();
+      const mockItem = {
+        id: 'item-1',
+        productId: 'product-1',
+        name: 'Product',
+        price: 100,
+        quantity: 1,
+      };
+
+      act(() => {
+        addItem(mockItem);
+        updateQuantity('product-1', 5);
+      });
+
+      const state = useCartStore.getState();
+      expect(state.items[0].quantity).toBe(5);
+    });
+
+    it('should remove item when updating quantity to 0 by productId', () => {
+      const { addItem, updateQuantity } = useCartStore.getState();
+      const mockItem = {
+        id: 'item-1',
+        productId: 'product-1',
+        name: 'Product',
+        price: 100,
+        quantity: 1,
+      };
+
+      act(() => {
+        addItem(mockItem);
+        updateQuantity('product-1', 0);
+      });
+
+      const state = useCartStore.getState();
+      expect(state.items.length).toBe(0);
+    });
   });
 });

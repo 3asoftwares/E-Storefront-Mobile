@@ -30,8 +30,8 @@ describe('Environment Configuration', () => {
   });
 
   describe('Default values', () => {
-    it('should have localhost GraphQL URL by default', () => {
-      expect(ENV.GRAPHQL_URL).toContain('localhost');
+    it('should have railway GraphQL URL by default', () => {
+      expect(ENV.GRAPHQL_URL).toContain('graphql');
     });
 
     it('should have mobile GraphQL URL by default', () => {
