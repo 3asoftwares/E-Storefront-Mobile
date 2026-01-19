@@ -92,63 +92,86 @@ describe('Apollo Client Branch Coverage', () => {
     });
 
     it('should set global token when token exists in storage', async () => {
-      (AsyncStorage.getItem as jest.Mock).mockResolvedValue('stored-token');
+      // Set up mock before isolating modules
+      const mockGetItem = jest.fn().mockResolvedValue('stored-token');
+      jest.doMock('@react-native-async-storage/async-storage', () => ({
+        getItem: mockGetItem,
+        setItem: jest.fn(),
+        removeItem: jest.fn(),
+      }));
 
-      const { initializeAuth } = require('../../../lib/apollo/client');
-      await initializeAuth();
+      await jest.isolateModulesAsync(async () => {
+        const { initializeAuth } = require('../../../lib/apollo/client');
+        await initializeAuth();
+        expect((globalThis as any).__AUTH_TOKEN__).toBe('stored-token');
+      });
 
-      expect(AsyncStorage.getItem).toHaveBeenCalledWith('accessToken');
-      expect((globalThis as any).__AUTH_TOKEN__).toBe('stored-token');
+      expect(mockGetItem).toHaveBeenCalledWith('accessToken');
     });
 
     it('should not set global token when no token in storage', async () => {
-      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
       (globalThis as any).__AUTH_TOKEN__ = undefined;
 
-      const { initializeAuth } = require('../../../lib/apollo/client');
-      await initializeAuth();
+      const mockGetItem = jest.fn().mockResolvedValue(null);
+      jest.doMock('@react-native-async-storage/async-storage', () => ({
+        getItem: mockGetItem,
+        setItem: jest.fn(),
+        removeItem: jest.fn(),
+      }));
 
-      expect(AsyncStorage.getItem).toHaveBeenCalledWith('accessToken');
-      // Token should remain undefined when no token in storage
-      expect((globalThis as any).__AUTH_TOKEN__).toBeUndefined();
+      await jest.isolateModulesAsync(async () => {
+        const { initializeAuth } = require('../../../lib/apollo/client');
+        await initializeAuth();
+        // Token should remain undefined when no token in storage
+        expect((globalThis as any).__AUTH_TOKEN__).toBeUndefined();
+      });
+
+      expect(mockGetItem).toHaveBeenCalledWith('accessToken');
     });
 
     it('should handle empty string token', async () => {
-      (AsyncStorage.getItem as jest.Mock).mockResolvedValue('');
       (globalThis as any).__AUTH_TOKEN__ = undefined;
 
-      const { initializeAuth } = require('../../../lib/apollo/client');
-      await initializeAuth();
+      const mockGetItem = jest.fn().mockResolvedValue('');
+      jest.doMock('@react-native-async-storage/async-storage', () => ({
+        getItem: mockGetItem,
+        setItem: jest.fn(),
+        removeItem: jest.fn(),
+      }));
 
-      // Empty string is falsy, so token should not be set
-      expect((globalThis as any).__AUTH_TOKEN__).toBeUndefined();
+      await jest.isolateModulesAsync(async () => {
+        const { initializeAuth } = require('../../../lib/apollo/client');
+        await initializeAuth();
+        // Empty string is falsy, so token should not be set
+        expect((globalThis as any).__AUTH_TOKEN__).toBeUndefined();
+      });
     });
   });
 
   describe('Auth Link Token Handling', () => {
     it('should add authorization header when token exists', () => {
       (globalThis as any).__AUTH_TOKEN__ = 'test-bearer-token';
-      
+
       // The authLink adds Bearer token to headers
       const mockOperation = {
         setContext: jest.fn(),
       };
       const mockForward = jest.fn();
-      
+
       // Verify token is set globally
       expect((globalThis as any).__AUTH_TOKEN__).toBe('test-bearer-token');
     });
 
     it('should not add authorization header when token is null', () => {
       (globalThis as any).__AUTH_TOKEN__ = null;
-      
+
       // Verify token is null
       expect((globalThis as any).__AUTH_TOKEN__).toBeNull();
     });
 
     it('should not add authorization header when token is undefined', () => {
       (globalThis as any).__AUTH_TOKEN__ = undefined;
-      
+
       // Verify token is undefined
       expect((globalThis as any).__AUTH_TOKEN__).toBeUndefined();
     });
@@ -158,7 +181,7 @@ describe('Apollo Client Branch Coverage', () => {
     it('should use same-origin for web platform', () => {
       const webPlatform = Platform.OS === 'web';
       const credentials = webPlatform ? 'same-origin' : 'include';
-      
+
       // When on web, credentials should be 'same-origin'
       expect(credentials).toBe('include'); // Current mock is ios
     });

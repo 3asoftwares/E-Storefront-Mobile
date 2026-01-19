@@ -29,9 +29,13 @@ jest.mock('react-native-safe-area-context', () => {
 jest.mock('react-native-gesture-handler', () => {
   const { View } = require('react-native');
   return {
-    GestureHandlerRootView: ({ children, style }: { children: React.ReactNode; style?: object }) => (
-      <View style={style}>{children}</View>
-    ),
+    GestureHandlerRootView: ({
+      children,
+      style,
+    }: {
+      children: React.ReactNode;
+      style?: object;
+    }) => <View style={style}>{children}</View>,
   };
 });
 
@@ -123,7 +127,7 @@ describe('RootLayout', () => {
 
   it('should initialize auth and load user data only once', async () => {
     const { rerender } = render(<RootLayout />);
-    
+
     await waitFor(() => {
       expect(initializeAuth).toHaveBeenCalledTimes(1);
       expect(mockLoadUserFromStorage).toHaveBeenCalledTimes(1);
@@ -131,7 +135,7 @@ describe('RootLayout', () => {
 
     // Rerender should not call initialization again due to empty dependency array
     rerender(<RootLayout />);
-    
+
     // Still should only be called once due to useEffect with empty deps
     expect(initializeAuth).toHaveBeenCalledTimes(1);
     expect(mockLoadUserFromStorage).toHaveBeenCalledTimes(1);
@@ -144,7 +148,7 @@ describe('RootLayout', () => {
 
   it('should use cart store selector for loadUserFromStorage', () => {
     render(<RootLayout />);
-    
+
     expect(useCartStore).toHaveBeenCalled();
   });
 });
@@ -170,7 +174,7 @@ describe('RootLayout - Provider Integration', () => {
 
   it('should handle store selector properly', () => {
     render(<RootLayout />);
-    
+
     // Verify the selector is called with correct state shape
     const selectorCall = (useCartStore as unknown as jest.Mock).mock.calls[0][0];
     const result = selectorCall({ loadUserFromStorage: mockLoadUserFromStorage });

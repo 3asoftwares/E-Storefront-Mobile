@@ -59,7 +59,7 @@ const createWrapper = () => {
   const Wrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
-  
+
   return Wrapper;
 };
 
@@ -196,10 +196,7 @@ describe('Auth Hooks', () => {
       await result.current.login({ email: 'test@example.com', password: 'password' });
 
       expect(AsyncStorage.setItem).toHaveBeenCalledWith('refreshToken', 'refresh123');
-      expect(AsyncStorage.setItem).toHaveBeenCalledWith(
-        'user',
-        JSON.stringify(mockLoginData.user)
-      );
+      expect(AsyncStorage.setItem).toHaveBeenCalledWith('user', JSON.stringify(mockLoginData.user));
     });
 
     it('should handle login failure', async () => {

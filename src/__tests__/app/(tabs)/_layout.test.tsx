@@ -4,7 +4,7 @@ import TabsLayout from '../../../../app/(tabs)/_layout';
 import { useCartStore } from '../../../store/cartStore';
 
 // Store icons for rendering
-let capturedIcons: React.ReactNode[] = [];
+const capturedIcons: React.ReactNode[] = [];
 
 // Mock expo-router with inline component definitions
 jest.mock('expo-router', () => {
@@ -118,7 +118,7 @@ describe('TabsLayout', () => {
   it('should call cart store selector for items', () => {
     mockCartStore(2, 1);
     render(<TabsLayout />);
-    
+
     // Verify useCartStore was called
     expect(useCartStore).toHaveBeenCalled();
   });
@@ -132,7 +132,7 @@ describe('TabsLayout - Cart Badge', () => {
   it('should not show badge when cart is empty', () => {
     mockCartStore(0, 0);
     const { queryByText } = render(<TabsLayout />);
-    
+
     // Badge should not be present with 0 items
     expect(queryByText('0')).toBeNull();
   });
@@ -176,7 +176,7 @@ describe('TabsLayout - Wishlist Badge', () => {
   it('should not show wishlist badge when empty', () => {
     mockCartStore(0, 0);
     const { queryByText } = render(<TabsLayout />);
-    
+
     expect(queryByText('0')).toBeNull();
   });
 
@@ -215,9 +215,7 @@ describe('TabsLayout - Store Integration', () => {
       { id: '1', quantity: 2 },
       { id: '2', quantity: 1 },
     ];
-    const mockWishlist = [
-      { productId: 'w1' },
-    ];
+    const mockWishlist = [{ productId: 'w1' }];
 
     (useCartStore as unknown as jest.Mock).mockImplementation((selector) => {
       const state = {

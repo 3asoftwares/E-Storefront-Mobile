@@ -154,7 +154,7 @@ describe('ProductGrid Component', () => {
 
     it('handles refreshing state', () => {
       const { getByText } = render(
-        <ProductGrid products={mockProducts} refreshing={true} onRefresh={() => { }} />
+        <ProductGrid products={mockProducts} refreshing={true} onRefresh={() => {}} />
       );
 
       expect(getByText('Product 1')).toBeTruthy();
@@ -196,11 +196,7 @@ describe('ProductHorizontalList Component', () => {
   it('shows See All button when onSeeAll provided', () => {
     const onSeeAll = jest.fn();
     const { getByText } = render(
-      <ProductHorizontalList
-        title="Featured"
-        products={mockProducts}
-        onSeeAll={onSeeAll}
-      />
+      <ProductHorizontalList title="Featured" products={mockProducts} onSeeAll={onSeeAll} />
     );
 
     expect(getByText('See All')).toBeTruthy();

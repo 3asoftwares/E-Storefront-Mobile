@@ -186,13 +186,21 @@ const mockCartStore = {
   clearUser: jest.fn(),
 };
 
-jest.mock('../src/store/cartStore', () => ({
-  useCartStore: jest.fn((selector) => selector ? selector(mockCartStore) : mockCartStore),
-}), { virtual: true });
+jest.mock(
+  '../src/store/cartStore',
+  () => ({
+    useCartStore: jest.fn((selector) => (selector ? selector(mockCartStore) : mockCartStore)),
+  }),
+  { virtual: true }
+);
 
-jest.mock('../../src/store/cartStore', () => ({
-  useCartStore: jest.fn((selector) => selector ? selector(mockCartStore) : mockCartStore),
-}), { virtual: true });
+jest.mock(
+  '../../src/store/cartStore',
+  () => ({
+    useCartStore: jest.fn((selector) => (selector ? selector(mockCartStore) : mockCartStore)),
+  }),
+  { virtual: true }
+);
 
 // Export mocks for test files to use
 global.__mockHooks = mockHooks;

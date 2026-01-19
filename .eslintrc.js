@@ -40,6 +40,7 @@ module.exports = {
       },
     ],
     '@typescript-eslint/no-require-imports': 'off',
+    '@typescript-eslint/no-var-requires': 'off',
 
     // React
     'react/react-in-jsx-scope': 'off', // Not needed in React 17+
@@ -60,5 +61,22 @@ module.exports = {
     'no-implied-eval': 'error',
     'no-new-func': 'error',
   },
+  overrides: [
+    {
+      // Disable strict rules for test files
+      files: [
+        '**/__tests__/**/*',
+        '**/*.test.ts',
+        '**/*.test.tsx',
+        '**/*.spec.ts',
+        '**/*.spec.tsx',
+      ],
+      rules: {
+        '@typescript-eslint/no-explicit-any': 'off',
+        '@typescript-eslint/no-unused-vars': 'off',
+        'no-console': 'off',
+      },
+    },
+  ],
   ignorePatterns: ['node_modules/', '.expo/', 'dist/', 'build/', 'coverage/', '*.config.js'],
 };

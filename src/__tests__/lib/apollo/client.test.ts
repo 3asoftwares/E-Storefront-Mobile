@@ -171,7 +171,7 @@ describe('Apollo Client', () => {
       // Reset mock to not throw
       (AsyncStorage.setItem as jest.Mock).mockResolvedValue(undefined);
       (AsyncStorage.removeItem as jest.Mock).mockResolvedValue(undefined);
-      
+
       // Set a token first
       await setAuthToken('test-token');
 
