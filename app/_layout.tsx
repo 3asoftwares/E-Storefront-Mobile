@@ -25,6 +25,7 @@ export default function RootLayout() {
     // Initialize auth token from storage on app start
     initializeAuth();
     loadUserFromStorage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

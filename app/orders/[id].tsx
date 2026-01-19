@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  Image,
   TouchableOpacity,
   ActivityIndicator,
   Alert,
@@ -12,10 +12,17 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faArrowLeft, faClipboardList, faGear, faTruck, faCircleCheck, faTimesCircle, faCartShopping } from '@fortawesome/free-solid-svg-icons';
+import {
+  faArrowLeft,
+  faClipboardList,
+  faGear,
+  faTruck,
+  faCircleCheck,
+  faTimesCircle,
+  faCartShopping,
+} from '@fortawesome/free-solid-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { useOrder, useCancelOrder } from '../../src/lib/hooks';
-import { faProductHunt } from '@fortawesome/free-brands-svg-icons';
 
 // Order Status Badge
 function OrderStatusBadge({ status }: { status: string }) {
@@ -69,7 +76,9 @@ function OrderTimeline({ status }: { status: string }) {
       <View style={styles.cancelledBanner}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
           <FontAwesomeIcon icon={faTimesCircle} size={16} color="#991B1B" />
-          <Text style={[styles.cancelledText, { marginLeft: 8 }]}>This order has been cancelled</Text>
+          <Text style={[styles.cancelledText, { marginLeft: 8 }]}>
+            This order has been cancelled
+          </Text>
         </View>
       </View>
     );
@@ -81,7 +90,11 @@ function OrderTimeline({ status }: { status: string }) {
         <View key={step.key} style={styles.timelineStep}>
           <View style={styles.timelineIconContainer}>
             <View style={[styles.timelineIcon, index <= currentStep && styles.timelineIconActive]}>
-              <FontAwesomeIcon icon={step.icon} size={16} color={index <= currentStep ? '#4F46E5' : '#9CA3AF'} />
+              <FontAwesomeIcon
+                icon={step.icon}
+                size={16}
+                color={index <= currentStep ? '#4F46E5' : '#9CA3AF'}
+              />
             </View>
             {index < steps.length - 1 && (
               <View
@@ -99,6 +112,7 @@ function OrderTimeline({ status }: { status: string }) {
 }
 
 // Order Item
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function OrderItemCard({ item }: { item: any }) {
   return (
     <View style={styles.orderItem}>
@@ -152,7 +166,10 @@ export default function OrderDetailScreen() {
       <SafeAreaView style={styles.container}>
         <Stack.Screen options={{ headerShown: false }} />
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={{ flexDirection: 'row', alignItems: 'center' }}
+          >
             <FontAwesomeIcon icon={faArrowLeft} size={16} color="#4F46E5" />
             <Text style={[styles.backButton, { marginLeft: 4 }]}>Back</Text>
           </TouchableOpacity>
@@ -172,7 +189,10 @@ export default function OrderDetailScreen() {
       <SafeAreaView style={styles.container}>
         <Stack.Screen options={{ headerShown: false }} />
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={{ flexDirection: 'row', alignItems: 'center' }}
+          >
             <FontAwesomeIcon icon={faArrowLeft} size={16} color="#4F46E5" />
             <Text style={[styles.backButton, { marginLeft: 4 }]}>Back</Text>
           </TouchableOpacity>
@@ -203,7 +223,10 @@ export default function OrderDetailScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={{ flexDirection: 'row', alignItems: 'center' }}
+        >
           <FontAwesomeIcon icon={faArrowLeft} size={16} color="#4F46E5" />
           <Text style={[styles.backButton, { marginLeft: 4 }]}>Back</Text>
         </TouchableOpacity>

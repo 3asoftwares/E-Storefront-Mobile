@@ -1,10 +1,10 @@
-import { 
-  Colors, 
-  Spacing, 
-  BorderRadius, 
-  FontSizes, 
+import {
+  Colors,
+  Spacing,
+  BorderRadius,
+  FontSizes,
   FontWeights,
-  Shadows 
+  Shadows,
 } from '../../constants/theme';
 
 describe('Theme Constants', () => {

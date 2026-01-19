@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -15,7 +16,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Stack } from 'expo-router';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faTimes, faCheck, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
-import { useAddresses, useAddAddress, useUpdateAddress, useDeleteAddress, useSetDefaultAddress } from '../src/lib/hooks';
+import {
+  useAddresses,
+  useAddAddress,
+  useUpdateAddress,
+  useDeleteAddress,
+  useSetDefaultAddress,
+} from '../src/lib/hooks';
 
 // Address Card Component
 function AddressCard({
@@ -25,6 +32,7 @@ function AddressCard({
   onEdit,
   onDelete,
 }: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   address: any;
   isDefault: boolean;
   onSetDefault: () => void;
@@ -73,7 +81,9 @@ function AddressModal({
 }: {
   visible: boolean;
   onClose: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onSave: (data: any) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialData?: any;
   isLoading: boolean;
 }) {
@@ -270,8 +280,8 @@ export default function AddressesScreen() {
   const { data: addresses = [], isLoading, refetch } = useAddresses();
   const { addAddress, isLoading: isAdding } = useAddAddress();
   const { updateAddress, isLoading: isUpdating } = useUpdateAddress();
-  const { deleteAddress, isLoading: isDeleting } = useDeleteAddress();
-  const { setDefaultAddress, isLoading: isSettingDefault } = useSetDefaultAddress();
+  const { deleteAddress, isLoading: _isDeleting } = useDeleteAddress();
+  const { setDefaultAddress, isLoading: _isSettingDefault } = useSetDefaultAddress();
 
   const handleSaveAddress = async (data: any) => {
     try {
@@ -332,7 +342,10 @@ export default function AddressesScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={{ flexDirection: 'row', alignItems: 'center' }}
+        >
           <FontAwesomeIcon icon={faArrowLeft} size={16} color="#4F46E5" />
           <Text style={[styles.backButton, { marginLeft: 4 }]}>Back</Text>
         </TouchableOpacity>

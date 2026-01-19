@@ -1,0 +1,9 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^if \\(Test-Path \"\\.gitlab-ci\\.yml\\.bak\"\\) \\{ Select-String -Path \"\\.gitlab-ci\\.yml\\.bak\" -Pattern \"hooks\\.slack\" -AllMatches \\} else \\{ \"File not found\" \\}$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "git checkout": true
+    }
+}

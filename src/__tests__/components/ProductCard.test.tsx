@@ -50,10 +50,8 @@ describe('ProductCard Component', () => {
 
     it('calls onPress when card is pressed', () => {
       const onPress = jest.fn();
-      const { getByText } = render(
-        <ProductCard product={mockProduct} onPress={onPress} />
-      );
-      
+      const { getByText } = render(<ProductCard product={mockProduct} onPress={onPress} />);
+
       fireEvent.press(getByText('Test Product'));
       expect(onPress).toHaveBeenCalled();
     });
@@ -66,7 +64,7 @@ describe('ProductCard Component', () => {
         price: 79.99,
         compareAtPrice: 99.99,
       };
-      
+
       const { getByText } = render(<ProductCard product={productWithDiscount} />);
       expect(getByText(/79\.99/)).toBeTruthy();
     });
@@ -77,7 +75,7 @@ describe('ProductCard Component', () => {
         price: 79.99,
         compareAtPrice: 99.99,
       };
-      
+
       const { getAllByText } = render(<ProductCard product={productWithDiscount} />);
       // Both prices should be displayed
       expect(getAllByText(/\d+\.\d{2}/).length).toBeGreaterThanOrEqual(1);
@@ -86,16 +84,12 @@ describe('ProductCard Component', () => {
 
   describe('Horizontal Variant', () => {
     it('renders horizontal layout', () => {
-      const { getByText } = render(
-        <ProductCard product={mockProduct} variant="horizontal" />
-      );
+      const { getByText } = render(<ProductCard product={mockProduct} variant="horizontal" />);
       expect(getByText('Test Product')).toBeTruthy();
     });
 
     it('shows category in horizontal variant', () => {
-      const { getByText } = render(
-        <ProductCard product={mockProduct} variant="horizontal" />
-      );
+      const { getByText } = render(<ProductCard product={mockProduct} variant="horizontal" />);
       expect(getByText('Electronics')).toBeTruthy();
     });
   });
@@ -111,17 +105,13 @@ describe('ProductCard Component', () => {
   describe('Without Optional Props', () => {
     it('renders without rating', () => {
       const { id, name, price } = mockProduct;
-      const { getByText } = render(
-        <ProductCard product={{ id, name, price }} />
-      );
+      const { getByText } = render(<ProductCard product={{ id, name, price }} />);
       expect(getByText('Test Product')).toBeTruthy();
     });
 
     it('renders without imageUrl (uses placeholder)', () => {
       const { id, name, price } = mockProduct;
-      const { getByText } = render(
-        <ProductCard product={{ id, name, price }} />
-      );
+      const { getByText } = render(<ProductCard product={{ id, name, price }} />);
       expect(getByText('Test Product')).toBeTruthy();
     });
 
@@ -136,9 +126,7 @@ describe('ProductCard Component', () => {
 
   describe('Review Count', () => {
     it('displays review count with rating', () => {
-      const { getByText } = render(
-        <ProductCard product={mockProduct} variant="horizontal" />
-      );
+      const { getByText } = render(<ProductCard product={mockProduct} variant="horizontal" />);
       expect(getByText('(100)')).toBeTruthy();
     });
   });

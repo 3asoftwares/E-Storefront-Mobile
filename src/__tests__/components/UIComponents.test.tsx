@@ -1,6 +1,7 @@
 /**
  * Tests for UI Components
  */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
@@ -21,7 +22,7 @@ describe('Card Component', () => {
 
   it('renders with different variants', () => {
     const variants = ['elevated', 'outlined', 'filled', 'glass', 'gradient'] as const;
-    
+
     variants.forEach((variant) => {
       const { getByText } = render(
         <Card variant={variant}>
@@ -34,7 +35,7 @@ describe('Card Component', () => {
 
   it('renders with different padding sizes', () => {
     const paddings = ['none', 'xs', 'sm', 'md', 'lg', 'xl'] as const;
-    
+
     paddings.forEach((padding) => {
       const { getByText } = render(
         <Card padding={padding}>
@@ -47,7 +48,7 @@ describe('Card Component', () => {
 
   it('renders with different radius sizes', () => {
     const radii = ['none', 'sm', 'md', 'lg', 'xl', '2xl'] as const;
-    
+
     radii.forEach((radius) => {
       const { getByText } = render(
         <Card radius={radius}>
@@ -65,7 +66,7 @@ describe('Card Component', () => {
         <Text>Pressable Card</Text>
       </Card>
     );
-    
+
     fireEvent.press(getByText('Pressable Card'));
     expect(onPressMock).toHaveBeenCalled();
   });
@@ -87,8 +88,16 @@ describe('Badge Component', () => {
   });
 
   it('renders with different variants', () => {
-    const variants = ['default', 'primary', 'success', 'warning', 'error', 'info', 'secondary'] as const;
-    
+    const variants = [
+      'default',
+      'primary',
+      'success',
+      'warning',
+      'error',
+      'info',
+      'secondary',
+    ] as const;
+
     variants.forEach((variant) => {
       const { getByText } = render(<Badge text={variant} variant={variant} />);
       expect(getByText(variant)).toBeTruthy();
@@ -97,7 +106,7 @@ describe('Badge Component', () => {
 
   it('renders with different sizes', () => {
     const sizes = ['sm', 'md', 'lg'] as const;
-    
+
     sizes.forEach((size) => {
       const { getByText } = render(<Badge text={size} size={size} />);
       expect(getByText(size)).toBeTruthy();
@@ -105,17 +114,13 @@ describe('Badge Component', () => {
   });
 
   it('renders with icon', () => {
-    const { getByText } = render(
-      <Badge text="With Icon" icon={<Text>🎉</Text>} />
-    );
+    const { getByText } = render(<Badge text="With Icon" icon={<Text>🎉</Text>} />);
     expect(getByText('With Icon')).toBeTruthy();
     expect(getByText('🎉')).toBeTruthy();
   });
 
   it('applies custom styles', () => {
-    const { getByText } = render(
-      <Badge text="Styled" style={{ marginLeft: 10 }} />
-    );
+    const { getByText } = render(<Badge text="Styled" style={{ marginLeft: 10 }} />);
     expect(getByText('Styled')).toBeTruthy();
   });
 });

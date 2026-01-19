@@ -1,21 +1,57 @@
 # GitHub Actions CI/CD Pipeline for E-Storefront Mobile App
-# Runs ONLY on push to main branch (not on PRs - GitLab handles MRs)
+# 
+# TRIGGER RULES:
+# - CI: Runs on Pull Request created/updated AND push to main
+# - CD: Runs ONLY on push to main (after GitLab syncs)
+# - EAS Builds: Manual trigger or version tags
+#
+# Note: GitLab is the primary repo. GitHub receives auto-sync from GitLab on main merge.
 
 name: CI/CD Pipeline
 
 on:
+  # CI: Run on Pull Requests
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  # CI + CD: Run on push to main (from GitLab sync)
   push:
     branches: [main]
+    tags:
+      - 'v*.*.*'
+  # Manual trigger for builds
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type to run'
+        required: true
+        default: 'preview'
+        type: choice
+        options:
+          - preview
+          - production
+      platform:
+        description: 'Platform to build'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - android
+          - ios
+          - all
 
 env:
   NODE_VERSION: '20'
+  EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
 jobs:
   # ============================================
-  # Install Dependencies
+  # Install & Cache Dependencies
   # ============================================
   install:
     runs-on: ubuntu-latest
+    outputs:
+      cache-key: ${{ steps.cache.outputs.cache-primary-key }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -26,13 +62,24 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
+      - name: Cache node_modules
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
 
   # ============================================
   # Code Quality (Parallel)
   # ============================================
   typecheck:
+    name: TypeScript Check
     runs-on: ubuntu-latest
     needs: install
     steps:
@@ -45,13 +92,20 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies (fallback)
+        run: npm ci --prefer-offline --no-audit
 
       - name: Run TypeScript check
         run: npm run typecheck
 
   lint:
+    name: ESLint Check
     runs-on: ubuntu-latest
     needs: install
     steps:
@@ -64,16 +118,55 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies (fallback)
+        run: npm ci --prefer-offline --no-audit
 
       - name: Run ESLint
         run: npm run lint
+
+  format:
+    name: Format Check
+    runs-on: ubuntu-latest
+    needs: install
+    continue-on-error: true  # Format issues shouldn't block the build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies (fallback)
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Check code formatting
+        run: |
+          echo "🎨 Checking code formatting with Prettier..."
+          npm run format:check || {
+            echo "::warning::Code formatting issues found. Run 'npm run format' to fix."
+            exit 1
+          }
 
   # ============================================
   # Testing
   # ============================================
   test:
+    name: Unit Tests
     runs-on: ubuntu-latest
     needs: install
     steps:
@@ -86,18 +179,79 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
 
-      - name: Run tests
-        run: npm test -- --passWithNoTests --ci
+      - name: Install dependencies (fallback)
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Run tests with coverage
+        run: npm test -- --passWithNoTests --ci --coverage
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
+
+  # ============================================
+  # SonarCloud Analysis
+  # ============================================
+  sonarcloud:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name != 'workflow_dispatch'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better analysis
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Download coverage artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+
+      - name: Verify coverage file exists
+        run: |
+          echo "📊 Checking coverage files..."
+          ls -la coverage/ || echo "No coverage directory"
+          cat coverage/lcov.info | head -20 || echo "No lcov.info file"
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=3asoftwares_E-Storefront-Mobile
+            -Dsonar.organization=3asoftwares-1
 
   # ============================================
   # Build Web
   # ============================================
   build-web:
+    name: Build Web Application
     runs-on: ubuntu-latest
-    needs: [typecheck, lint, test]
+    needs: [typecheck, lint, format, test]
+    # Don't wait for sonarcloud - it can run in parallel
+    if: always() && needs.typecheck.result == 'success' && needs.lint.result == 'success' && needs.test.result == 'success'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -108,8 +262,14 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies (fallback)
+        run: npm ci --prefer-offline --no-audit
 
       - name: Build web
         run: npm run web:build
@@ -120,3 +280,85 @@ jobs:
           name: web-build
           path: dist/
           retention-days: 7
+
+  # ============================================
+  # EAS Build - Mobile Apps (CD: Main only)
+  # ============================================
+  eas-build:
+    runs-on: ubuntu-latest
+    needs: [typecheck, lint, test]
+    # CD: Only run on main push (not PRs), manual trigger, or version tags
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      github.event_name == 'workflow_dispatch' ||
+      startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Determine build parameters
+        id: build-params
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "profile=${{ github.event.inputs.build_type }}" >> $GITHUB_OUTPUT
+            echo "platform=${{ github.event.inputs.platform }}" >> $GITHUB_OUTPUT
+          else
+            echo "profile=production" >> $GITHUB_OUTPUT
+            echo "platform=all" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build app with EAS
+        run: |
+          echo "🚀 Building ${{ steps.build-params.outputs.platform }} with profile ${{ steps.build-params.outputs.profile }}"
+          eas build \
+            --platform ${{ steps.build-params.outputs.platform }} \
+            --profile ${{ steps.build-params.outputs.profile }} \
+            --non-interactive \
+            --no-wait
+
+  # ============================================
+  # EAS Update - OTA Updates (CD: Main only)
+  # ============================================
+  eas-update:
+    runs-on: ubuntu-latest
+    needs: [build-web]
+    # CD: Only run on main push (not PRs)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Publish OTA update
+        run: |
+          echo "📡 Publishing OTA update to production channel..."
+          eas update --branch production --message "Update from ${{ github.sha }}"

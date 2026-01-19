@@ -46,7 +46,9 @@ function OrderStatusBadge({ status }: { status: string }) {
 }
 
 // Order Card Component
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function OrderCard({ order }: { order: any }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const itemCount = order.items?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
   const orderDate = new Date(order.createdAt).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -88,7 +90,12 @@ function OrderCard({ order }: { order: any }) {
       <View style={styles.orderFooter}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Text style={styles.viewDetailsText}>View Details</Text>
-          <FontAwesomeIcon icon={faArrowRight} size={12} color="#4F46E5" style={{ marginLeft: 4 }} />
+          <FontAwesomeIcon
+            icon={faArrowRight}
+            size={12}
+            color="#4F46E5"
+            style={{ marginLeft: 4 }}
+          />
         </View>
       </View>
     </TouchableOpacity>
@@ -107,7 +114,10 @@ export default function OrdersScreen() {
       <SafeAreaView style={styles.container}>
         <Stack.Screen options={{ headerShown: false }} />
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={{ flexDirection: 'row', alignItems: 'center' }}
+          >
             <FontAwesomeIcon icon={faArrowLeft} size={16} color="#4F46E5" />
             <Text style={[styles.backButton, { marginLeft: 4 }]}>Back</Text>
           </TouchableOpacity>
@@ -128,7 +138,10 @@ export default function OrdersScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={{ flexDirection: 'row', alignItems: 'center' }}
+        >
           <FontAwesomeIcon icon={faArrowLeft} size={16} color="#4F46E5" />
           <Text style={[styles.backButton, { marginLeft: 4 }]}>Back</Text>
         </TouchableOpacity>

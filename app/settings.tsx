@@ -12,8 +12,8 @@ import {
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { 
-  faArrowRight, 
+import {
+  faArrowRight,
   faArrowLeft,
   faUser,
   faLock,
@@ -35,7 +35,7 @@ import {
   faUserShield,
   faScroll,
   faRightFromBracket,
-  faTrash
+  faTrash,
 } from '@fortawesome/free-solid-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {

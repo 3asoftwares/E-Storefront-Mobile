@@ -36,7 +36,7 @@ describe('Cart Store', () => {
 
     it('should add item to cart', () => {
       const { addItem } = useCartStore.getState();
-      
+
       act(() => {
         addItem(mockItem);
       });
@@ -49,7 +49,7 @@ describe('Cart Store', () => {
 
     it('should increase quantity when adding same item', () => {
       const { addItem } = useCartStore.getState();
-      
+
       act(() => {
         addItem(mockItem);
         addItem({ ...mockItem, quantity: 2 });
@@ -62,7 +62,7 @@ describe('Cart Store', () => {
 
     it('should add item using addToCart', () => {
       const { addToCart } = useCartStore.getState();
-      
+
       act(() => {
         addToCart({
           productId: 'product-2',
@@ -79,7 +79,7 @@ describe('Cart Store', () => {
 
     it('should remove item from cart by id', () => {
       const { addItem, removeItem } = useCartStore.getState();
-      
+
       act(() => {
         addItem(mockItem);
         removeItem('item-1');
@@ -91,7 +91,7 @@ describe('Cart Store', () => {
 
     it('should remove item from cart by productId', () => {
       const { addItem, removeFromCart } = useCartStore.getState();
-      
+
       act(() => {
         addItem(mockItem);
         removeFromCart('product-1');
@@ -103,7 +103,7 @@ describe('Cart Store', () => {
 
     it('should update item quantity', () => {
       const { addItem, updateQuantity } = useCartStore.getState();
-      
+
       act(() => {
         addItem(mockItem);
         updateQuantity('item-1', 5);
@@ -115,7 +115,7 @@ describe('Cart Store', () => {
 
     it('should remove item when quantity is set to 0', () => {
       const { addItem, updateQuantity } = useCartStore.getState();
-      
+
       act(() => {
         addItem(mockItem);
         updateQuantity('item-1', 0);
@@ -127,7 +127,7 @@ describe('Cart Store', () => {
 
     it('should clear cart', () => {
       const { addItem, clearCart } = useCartStore.getState();
-      
+
       act(() => {
         addItem(mockItem);
         addItem({ ...mockItem, id: 'item-2', productId: 'product-2' });
@@ -140,7 +140,7 @@ describe('Cart Store', () => {
 
     it('should calculate total items', () => {
       const { addItem, getTotalItems } = useCartStore.getState();
-      
+
       act(() => {
         addItem({ ...mockItem, quantity: 2 });
         addItem({ ...mockItem, id: 'item-2', productId: 'product-2', quantity: 3 });
@@ -151,7 +151,7 @@ describe('Cart Store', () => {
 
     it('should calculate total price', () => {
       const { addItem, getTotalPrice } = useCartStore.getState();
-      
+
       act(() => {
         addItem({ ...mockItem, price: 10, quantity: 2 }); // 20
         addItem({ ...mockItem, id: 'item-2', productId: 'product-2', price: 15, quantity: 1 }); // 15
@@ -162,7 +162,7 @@ describe('Cart Store', () => {
 
     it('should handle cart with variants', () => {
       const { addToCart } = useCartStore.getState();
-      
+
       act(() => {
         addToCart({
           productId: 'product-1',
@@ -189,7 +189,7 @@ describe('Cart Store', () => {
 
     it('should add item to wishlist', () => {
       const { addToWishlist } = useCartStore.getState();
-      
+
       act(() => {
         addToWishlist(mockWishlistItem);
       });
@@ -202,7 +202,7 @@ describe('Cart Store', () => {
 
     it('should not add duplicate to wishlist', () => {
       const { addToWishlist } = useCartStore.getState();
-      
+
       act(() => {
         addToWishlist(mockWishlistItem);
         addToWishlist(mockWishlistItem);
@@ -214,7 +214,7 @@ describe('Cart Store', () => {
 
     it('should remove item from wishlist', () => {
       const { addToWishlist, removeFromWishlist } = useCartStore.getState();
-      
+
       act(() => {
         addToWishlist(mockWishlistItem);
         removeFromWishlist('product-1');
@@ -226,7 +226,7 @@ describe('Cart Store', () => {
 
     it('should toggle wishlist item', () => {
       const { toggleWishlistItem } = useCartStore.getState();
-      
+
       // Add
       act(() => {
         toggleWishlistItem(mockWishlistItem);
@@ -246,9 +246,9 @@ describe('Cart Store', () => {
 
     it('should check if item is in wishlist', () => {
       const { addToWishlist, isInWishlist } = useCartStore.getState();
-      
+
       expect(isInWishlist('product-1')).toBe(false);
-      
+
       act(() => {
         addToWishlist(mockWishlistItem);
       });
@@ -258,7 +258,7 @@ describe('Cart Store', () => {
 
     it('should clear wishlist', () => {
       const { addToWishlist, clearWishlist } = useCartStore.getState();
-      
+
       act(() => {
         addToWishlist(mockWishlistItem);
         addToWishlist({ ...mockWishlistItem, productId: 'product-2', id: 'product-2' });
@@ -280,7 +280,7 @@ describe('Cart Store', () => {
 
     it('should add recently viewed item', () => {
       const { addRecentlyViewed } = useCartStore.getState();
-      
+
       act(() => {
         addRecentlyViewed(mockRecentItem);
       });
@@ -292,7 +292,7 @@ describe('Cart Store', () => {
 
     it('should move existing item to front', () => {
       const { addRecentlyViewed } = useCartStore.getState();
-      
+
       act(() => {
         addRecentlyViewed(mockRecentItem);
         addRecentlyViewed({ ...mockRecentItem, productId: 'product-2' });
@@ -306,7 +306,7 @@ describe('Cart Store', () => {
 
     it('should limit to 12 items', () => {
       const { addRecentlyViewed } = useCartStore.getState();
-      
+
       act(() => {
         for (let i = 0; i < 15; i++) {
           addRecentlyViewed({ ...mockRecentItem, productId: `product-${i}` });
@@ -319,7 +319,7 @@ describe('Cart Store', () => {
 
     it('should clear recently viewed', () => {
       const { addRecentlyViewed, clearRecentlyViewed } = useCartStore.getState();
-      
+
       act(() => {
         addRecentlyViewed(mockRecentItem);
         clearRecentlyViewed();
@@ -331,7 +331,7 @@ describe('Cart Store', () => {
 
     it('should add recently viewed using addToRecentlyViewed', () => {
       const { addToRecentlyViewed } = useCartStore.getState();
-      
+
       act(() => {
         addToRecentlyViewed({
           id: 'product-1',
@@ -350,7 +350,7 @@ describe('Cart Store', () => {
   describe('Recent Searches', () => {
     it('should add recent search', () => {
       const { addRecentSearch } = useCartStore.getState();
-      
+
       act(() => {
         addRecentSearch('shoes');
       });
@@ -361,7 +361,7 @@ describe('Cart Store', () => {
 
     it('should not add duplicate searches (case insensitive)', () => {
       const { addRecentSearch } = useCartStore.getState();
-      
+
       act(() => {
         addRecentSearch('Shoes');
         addRecentSearch('shoes');
@@ -374,7 +374,7 @@ describe('Cart Store', () => {
 
     it('should limit to 20 searches', () => {
       const { addRecentSearch } = useCartStore.getState();
-      
+
       act(() => {
         for (let i = 0; i < 25; i++) {
           addRecentSearch(`search-${i}`);
@@ -387,7 +387,7 @@ describe('Cart Store', () => {
 
     it('should clear recent searches', () => {
       const { addRecentSearch, clearRecentSearches } = useCartStore.getState();
-      
+
       act(() => {
         addRecentSearch('test');
         clearRecentSearches();
@@ -409,7 +409,7 @@ describe('Cart Store', () => {
 
     it('should set user profile', () => {
       const { setUserProfile } = useCartStore.getState();
-      
+
       act(() => {
         setUserProfile(mockProfile);
       });
@@ -420,7 +420,7 @@ describe('Cart Store', () => {
 
     it('should clear user', () => {
       const { setUserProfile, clearUser } = useCartStore.getState();
-      
+
       act(() => {
         setUserProfile(mockProfile);
         clearUser();
@@ -455,7 +455,7 @@ describe('Cart Store', () => {
 
     it('should add address', () => {
       const { addAddress } = useCartStore.getState();
-      
+
       act(() => {
         addAddress(mockAddress);
       });
@@ -470,13 +470,216 @@ describe('Cart Store', () => {
       });
 
       const { addAddress } = useCartStore.getState();
-      
+
       act(() => {
         addAddress(mockAddress);
       });
 
       const state = useCartStore.getState();
       expect(state.userProfile).toBeNull();
+    });
+
+    it('should update address', () => {
+      const { addAddress, updateAddress } = useCartStore.getState();
+
+      act(() => {
+        addAddress(mockAddress);
+        updateAddress('addr-1', { city: 'Boston', state: 'MA' });
+      });
+
+      const state = useCartStore.getState();
+      const updatedAddress = state.userProfile?.addresses?.find((a: any) => a.id === 'addr-1');
+      expect(updatedAddress?.city).toBe('Boston');
+      expect(updatedAddress?.state).toBe('MA');
+    });
+
+    it('should not update address if no user profile', () => {
+      act(() => {
+        useCartStore.setState({ userProfile: null });
+      });
+
+      const { updateAddress } = useCartStore.getState();
+
+      act(() => {
+        updateAddress('addr-1', { city: 'Boston' });
+      });
+
+      const state = useCartStore.getState();
+      expect(state.userProfile).toBeNull();
+    });
+
+    it('should remove address', () => {
+      const { addAddress, removeAddress } = useCartStore.getState();
+
+      act(() => {
+        addAddress(mockAddress);
+        addAddress({ ...mockAddress, id: 'addr-2', label: 'Work' });
+        removeAddress('addr-1');
+      });
+
+      const state = useCartStore.getState();
+      expect(state.userProfile?.addresses?.length).toBe(1);
+      expect(state.userProfile?.addresses?.[0].id).toBe('addr-2');
+    });
+
+    it('should not remove address if no user profile', () => {
+      act(() => {
+        useCartStore.setState({ userProfile: null });
+      });
+
+      const { removeAddress } = useCartStore.getState();
+
+      act(() => {
+        removeAddress('addr-1');
+      });
+
+      const state = useCartStore.getState();
+      expect(state.userProfile).toBeNull();
+    });
+
+    it('should set default address', () => {
+      const { addAddress, setDefaultAddress } = useCartStore.getState();
+
+      act(() => {
+        addAddress(mockAddress);
+        setDefaultAddress('addr-1');
+      });
+
+      const state = useCartStore.getState();
+      expect(state.userProfile?.defaultAddressId).toBe('addr-1');
+    });
+
+    it('should not set default address if no user profile', () => {
+      act(() => {
+        useCartStore.setState({ userProfile: null });
+      });
+
+      const { setDefaultAddress } = useCartStore.getState();
+
+      act(() => {
+        setDefaultAddress('addr-1');
+      });
+
+      const state = useCartStore.getState();
+      expect(state.userProfile).toBeNull();
+    });
+  });
+
+  describe('Cart Alias', () => {
+    it('should access items through items array', () => {
+      const { addItem } = useCartStore.getState();
+      const mockItem = {
+        id: 'item-1',
+        productId: 'product-1',
+        name: 'Test Product',
+        price: 29.99,
+        quantity: 1,
+      };
+
+      act(() => {
+        addItem(mockItem);
+      });
+
+      const state = useCartStore.getState();
+      expect(state.items.length).toBe(1);
+      expect(state.items[0].name).toBe('Test Product');
+    });
+  });
+
+  describe('Wishlist with ID alias', () => {
+    it('should add item using id field', () => {
+      const { addToWishlist } = useCartStore.getState();
+
+      act(() => {
+        addToWishlist({
+          id: 'product-1',
+          productId: '',
+          name: 'Product',
+          price: 100,
+        });
+      });
+
+      const state = useCartStore.getState();
+      expect(state.wishlist.length).toBe(1);
+    });
+
+    it('should not add duplicate using id field', () => {
+      const { addToWishlist } = useCartStore.getState();
+
+      act(() => {
+        addToWishlist({
+          id: 'product-1',
+          productId: '',
+          name: 'Product',
+          price: 100,
+        });
+        addToWishlist({
+          id: 'product-1',
+          productId: '',
+          name: 'Product',
+          price: 100,
+        });
+      });
+
+      const state = useCartStore.getState();
+      expect(state.wishlist.length).toBe(1);
+    });
+
+    it('should remove from wishlist using id field', () => {
+      const { addToWishlist, removeFromWishlist } = useCartStore.getState();
+
+      act(() => {
+        addToWishlist({
+          id: 'product-1',
+          productId: '',
+          name: 'Product',
+          price: 100,
+        });
+        removeFromWishlist('product-1');
+      });
+
+      const state = useCartStore.getState();
+      expect(state.wishlist.length).toBe(0);
+    });
+  });
+
+  describe('Update quantity by productId', () => {
+    it('should update quantity by productId', () => {
+      const { addItem, updateQuantity } = useCartStore.getState();
+      const mockItem = {
+        id: 'item-1',
+        productId: 'product-1',
+        name: 'Product',
+        price: 100,
+        quantity: 1,
+      };
+
+      act(() => {
+        addItem(mockItem);
+        updateQuantity('product-1', 5);
+      });
+
+      const state = useCartStore.getState();
+      expect(state.items[0].quantity).toBe(5);
+    });
+
+    it('should remove item when updating quantity to 0 by productId', () => {
+      const { addItem, updateQuantity } = useCartStore.getState();
+      const mockItem = {
+        id: 'item-1',
+        productId: 'product-1',
+        name: 'Product',
+        price: 100,
+        quantity: 1,
+      };
+
+      act(() => {
+        addItem(mockItem);
+        updateQuantity('product-1', 0);
+      });
+
+      const state = useCartStore.getState();
+      expect(state.items.length).toBe(0);
     });
   });
 });

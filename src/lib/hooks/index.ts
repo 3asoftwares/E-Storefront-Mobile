@@ -1,10 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { apolloClient } from '../apollo/client';
 import { GQL_QUERIES } from '../apollo/queries';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setAuthToken, clearAuthToken } from '../apollo/client';
 import { useCartStore } from '../../store/cartStore';
-import { router } from 'expo-router';
 
 // ============== PRODUCT HOOKS ==============
 export interface ProductFilters {
@@ -236,10 +236,12 @@ export function useCurrentUser() {
         return data.me;
       } catch (error: any) {
         // Check if it's an authentication error
-        const isAuthError = error?.graphQLErrors?.some(
-          (e: any) => e.extensions?.code === 'UNAUTHENTICATED' || e.message?.includes('Not authenticated')
-        ) || error?.message?.includes('Not authenticated');
-        
+        const isAuthError =
+          error?.graphQLErrors?.some(
+            (e: any) =>
+              e.extensions?.code === 'UNAUTHENTICATED' || e.message?.includes('Not authenticated')
+          ) || error?.message?.includes('Not authenticated');
+
         if (isAuthError) {
           // Clear auth state and throw to trigger redirect
           await clearAuthToken();
