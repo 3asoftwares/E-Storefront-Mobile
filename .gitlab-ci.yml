@@ -88,7 +88,7 @@ Install Dependencies:
     - apk add --no-cache git
     - npm ci --cache .npm --prefer-offline
     - npm install -g eas-cli
-    - echo "✅ Dependencies installed successfully"
+    - echo "Dependencies installed successfully"
   cache:
     <<: *node_cache
     policy: push
@@ -107,7 +107,7 @@ TypeScript Check:
   needs:
     - job: Install Dependencies
   script:
-    - echo "🔍 Running TypeScript type checking..."
+    - echo "Running TypeScript type checking..."
     - npm run typecheck
   allow_failure: false
   rules:
@@ -121,7 +121,7 @@ ESLint Check:
   needs:
     - job: Install Dependencies
   script:
-    - echo "🔍 Running ESLint..."
+    - echo "Running ESLint..."
     - npm run lint
   allow_failure: true
   rules:
@@ -135,7 +135,7 @@ Format Check:
   needs:
     - job: Install Dependencies
   script:
-    - echo "🔍 Checking code formatting..."
+    - echo "Checking code formatting..."
     - npm run format:check
   allow_failure: true
   rules:
@@ -151,7 +151,7 @@ Unit Tests:
   needs:
     - job: Install Dependencies
   script:
-    - echo "🧪 Running unit tests with coverage..."
+    - echo "Running unit tests with coverage..."
     - npm test -- --passWithNoTests --ci --coverage
   artifacts:
     name: "coverage-${CI_COMMIT_SHORT_SHA}"
@@ -183,14 +183,14 @@ SonarCloud Analysis:
     paths:
       - .sonar/cache
   script:
-    - echo "📊 Running SonarCloud Analysis..."
-    - echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    - echo "📋 SonarCloud Configuration:"
+    - echo "Running SonarCloud Analysis..."
+    - echo "================================================"
+    - echo "SonarCloud Configuration:"
     - cat sonar-project.properties | grep -E "^sonar\.(projectKey|projectName|organization|host\.url)" || true
-    - echo "   Branch - ${CI_COMMIT_REF_NAME}"
-    - echo "   SONAR_TOKEN - [MASKED]"
-    - if [ -z "$SONAR_TOKEN" ]; then echo "❌ ERROR - SONAR_TOKEN is not set!"; exit 1; fi
-    - echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    - echo "Branch - ${CI_COMMIT_REF_NAME}"
+    - echo "SONAR_TOKEN - [MASKED]"
+    - if [ -z "$SONAR_TOKEN" ]; then echo "ERROR - SONAR_TOKEN is not set!"; exit 1; fi
+    - echo "================================================"
     - sonar-scanner -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=${SONAR_TOKEN} -Dsonar.branch.name=${CI_COMMIT_REF_NAME}
   allow_failure: true
   rules:
@@ -213,7 +213,7 @@ Build Web:
     - job: Unit Tests
     - job: SonarCloud Analysis
   script:
-    - echo "🌐 Building Web Application..."
+    - echo "Building Web Application..."
     - npm run web:build
   artifacts:
     name: "web-build-${CI_COMMIT_SHORT_SHA}"
@@ -246,9 +246,9 @@ Build Web:
 EAS Build Preview Android:
   extends: .eas_build_template
   script:
-    - echo "📱 Starting EAS Preview Build for Android..."
+    - echo "Starting EAS Preview Build for Android..."
     - eas build --platform android --profile preview --non-interactive --no-wait
-    - echo "✅ Build submitted to EAS! Check https://expo.dev for status."
+    - echo "Build submitted to EAS! Check https://expo.dev for status."
   rules:
     - if: $CI_COMMIT_BRANCH == "develop"
       when: manual
@@ -258,9 +258,9 @@ EAS Build Preview Android:
 EAS Build Preview iOS:
   extends: .eas_build_template
   script:
-    - echo "📱 Starting EAS Preview Build for iOS..."
+    - echo "Starting EAS Preview Build for iOS..."
     - eas build --platform ios --profile preview --non-interactive --no-wait
-    - echo "✅ Build submitted to EAS! Check https://expo.dev for status."
+    - echo "Build submitted to EAS! Check https://expo.dev for status."
   rules:
     - if: $CI_COMMIT_BRANCH == "develop"
       when: manual
@@ -270,9 +270,9 @@ EAS Build Preview iOS:
 EAS Build Production:
   extends: .eas_build_template
   script:
-    - echo "🚀 Starting EAS Production Build..."
+    - echo "Starting EAS Production Build..."
     - eas build --platform all --profile production --non-interactive --no-wait
-    - echo "✅ Production build submitted to EAS!"
+    - echo "Production build submitted to EAS!"
   rules:
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
       when: manual
@@ -292,9 +292,9 @@ EAS Update Preview:
     - npm ci
     - npm install -g eas-cli
   script:
-    - echo "📡 Publishing OTA Update to Preview channel..."
+    - echo "Publishing OTA Update to Preview channel..."
     - eas update --branch preview --message "Preview update from ${CI_COMMIT_SHORT_SHA}"
-    - echo "✅ OTA Update published to preview channel!"
+    - echo "OTA Update published to preview channel!"
   cache:
     <<: *node_cache
   rules:
@@ -313,9 +313,9 @@ EAS Update Production:
     - npm ci
     - npm install -g eas-cli
   script:
-    - echo "📡 Publishing OTA Update to Production channel..."
+    - echo "Publishing OTA Update to Production channel..."
     - eas update --branch production --message "Production update ${CI_COMMIT_TAG:-$CI_COMMIT_SHORT_SHA}"
-    - echo "✅ OTA Update published to production channel!"
+    - echo "OTA Update published to production channel!"
   cache:
     <<: *node_cache
   rules:
@@ -331,7 +331,7 @@ EAS Update Production:
 # Sync Stage - Automatic Push to GitHub after merge to main
 # ============================================
 
-Sync to GitHub:
+sync-to-github:
   stage: sync
   image: alpine:latest
   variables:
@@ -340,17 +340,16 @@ Sync to GitHub:
   before_script:
     - apk add --no-cache git
   script:
-    - echo "🔄 Automatically syncing to GitHub main branch..."
-    - echo "   GitLab commit: ${CI_COMMIT_SHA}"
-    - echo "   Branch: ${CI_COMMIT_BRANCH}"
+    - echo "Syncing to GitHub main branch..."
+    - echo "GitLab commit - ${CI_COMMIT_SHA}"
+    - echo "Branch - ${CI_COMMIT_BRANCH}"
     - git config --global user.email "ci@3asoftwares.com"
     - git config --global user.name "GitLab CI"
-    - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/3asoftwares/E-Storefront-Mobile.git 2>/dev/null || git remote set-url github https://oauth2:${GITHUB_TOKEN}@github.com/3asoftwares/E-Storefront-Mobile.git
+    - git remote add github "https://oauth2:${GITHUB_TOKEN}@github.com/3asoftwares/E-Storefront-Mobile.git" || git remote set-url github "https://oauth2:${GITHUB_TOKEN}@github.com/3asoftwares/E-Storefront-Mobile.git"
     - git fetch github main --depth=1 || true
     - git push github HEAD:main --force
-    - echo "✅ Successfully synced to GitHub main branch!"
+    - echo "Successfully synced to GitHub main branch!"
   rules:
-    # AUTOMATIC: Sync to GitHub on every merge to main
     - if: $CI_COMMIT_BRANCH == "main"
       when: on_success
   needs:
