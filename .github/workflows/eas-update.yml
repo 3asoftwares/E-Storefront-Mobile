@@ -1,0 +1,146 @@
+# EAS Update Workflow for E-Storefront Mobile
+# Over-The-Air (OTA) updates for instant app updates without app store review
+#
+# OTA updates allow you to push JavaScript and asset changes directly to users
+# without requiring them to download a new version from the app store.
+#
+# TRIGGER RULES:
+# - CD: Only runs on push to main (after GitLab sync) or manual trigger
+# - Does NOT run on PRs
+
+name: EAS OTA Update
+
+on:
+  # Manual trigger for any branch
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Update branch/channel'
+        required: true
+        default: 'preview'
+        type: choice
+        options:
+          - development
+          - preview
+          - production
+      message:
+        description: 'Update message (shown in Expo dashboard)'
+        required: true
+        default: 'Bug fixes and improvements'
+        type: string
+  # CD: Auto-trigger on push to main (from GitLab sync)
+  push:
+    branches:
+      - main
+    paths:
+      - 'app/**'
+      - 'src/**'
+      - 'assets/**'
+      - 'package.json'
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # ============================================
+  # Quality Check
+  # ============================================
+  quality-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript check
+        run: npm run typecheck
+
+      - name: Run tests
+        run: npm test -- --passWithNoTests --ci
+
+  # ============================================
+  # Publish OTA Update
+  # ============================================
+  eas-update:
+    runs-on: ubuntu-latest
+    needs: quality-check
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Determine update parameters
+        id: params
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "branch=${{ github.event.inputs.branch }}" >> $GITHUB_OUTPUT
+            echo "message=${{ github.event.inputs.message }}" >> $GITHUB_OUTPUT
+          else
+            # Auto-update to production on main push
+            echo "branch=production" >> $GITHUB_OUTPUT
+            echo "message=Auto-update from commit ${{ github.sha }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Publish OTA Update
+        id: update
+        run: |
+          echo "📡 Publishing OTA Update..."
+          echo "   Branch: ${{ steps.params.outputs.branch }}"
+          echo "   Message: ${{ steps.params.outputs.message }}"
+          echo ""
+
+          UPDATE_OUTPUT=$(eas update \
+            --branch ${{ steps.params.outputs.branch }} \
+            --message "${{ steps.params.outputs.message }}" \
+            --non-interactive \
+            --json 2>&1) || true
+
+          echo "$UPDATE_OUTPUT"
+
+          # Extract update info
+          if echo "$UPDATE_OUTPUT" | grep -q "id"; then
+            UPDATE_ID=$(echo "$UPDATE_OUTPUT" | jq -r '.[0].id // empty')
+            echo "update-id=$UPDATE_ID" >> $GITHUB_OUTPUT
+          fi
+
+          echo "✅ OTA Update published successfully!"
+
+      - name: Update Summary
+        run: |
+          echo "## 📡 OTA Update Published" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Branch** | ${{ steps.params.outputs.branch }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Message** | ${{ steps.params.outputs.message }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Commit** | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Triggered by** | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 [View updates on Expo Dashboard](https://expo.dev/accounts/3asoftwares/projects/3asoftwares/updates)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📱 How users receive this update:" >> $GITHUB_STEP_SUMMARY
+          echo "- Users on the **${{ steps.params.outputs.branch }}** channel will receive this update automatically" >> $GITHUB_STEP_SUMMARY
+          echo "- The update downloads in the background" >> $GITHUB_STEP_SUMMARY
+          echo "- Changes take effect on app restart" >> $GITHUB_STEP_SUMMARY

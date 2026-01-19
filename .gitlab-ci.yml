@@ -1,6 +1,16 @@
 # GitLab CI/CD Pipeline for E-Storefront Mobile App
 # Expo/React Native Mobile Application
-
+# 
+# Pipeline Architecture:
+# ┌─────────┐   ┌─────────┐   ┌─────────┐   ┌─────────┐   ┌─────────┐   ┌─────────┐   ┌─────────┐
+# │ Install │ → │ Quality │ → │  Test   │ → │  Sonar  │ → │  Build  │ → │ Deploy  │ → │  Sync   │
+# └─────────┘   └─────────┘   └─────────┘   └─────────┘   └─────────┘   └─────────┘   └─────────┘
+#
+# TRIGGER RULES:
+# - CI (Install → Build): Runs on MR created/updated AND merge to main
+# - CD (Deploy → Sync):   Runs ONLY on merge to main branch
+# - GitHub Sync:          Automatic on merge to main
+#
 # ============================================
 # Global Configuration
 # ============================================
@@ -37,10 +47,12 @@ variables:
 
 workflow:
   rules:
+    # CI: Run on Merge Request created or updated
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    # CI + CD: Run on merge to main branch
     - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_BRANCH == "develop"
-    - if: $CI_COMMIT_TAG
+    # CD: Run on version tags for production releases
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
 
 # ============================================
 # Stages
@@ -52,6 +64,7 @@ stages:
   - test
   - sonar
   - build
+  - deploy
   - sync
 
 # ============================================
@@ -98,9 +111,9 @@ TypeScript Check:
     - npm run typecheck
   allow_failure: false
   rules:
+    # CI: Run on MR and main merge
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_BRANCH == "develop"
 
 ESLint Check:
   stage: quality
@@ -112,9 +125,9 @@ ESLint Check:
     - npm run lint
   allow_failure: true
   rules:
+    # CI: Run on MR and main merge
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_BRANCH == "develop"
 
 Format Check:
   stage: quality
@@ -147,9 +160,9 @@ Unit Tests:
     expire_in: 1 day
   allow_failure: true
   rules:
+    # CI: Run on MR and main merge
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_BRANCH == "develop"
 
 # ============================================
 # SonarCloud Stage
@@ -180,10 +193,10 @@ SonarCloud Analysis:
     - echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     - sonar-scanner -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=${SONAR_TOKEN} -Dsonar.branch.name=${CI_COMMIT_REF_NAME}
   allow_failure: true
-  rules:  
+  rules:
+    # CI: Run on MR and main merge
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_BRANCH == "develop"
 
 # ============================================
 # Build Stage
@@ -196,6 +209,7 @@ Build Web:
     - job: TypeScript Check
     - job: ESLint Check
     - job: Format Check
+      optional: true
     - job: Unit Tests
     - job: SonarCloud Analysis
   script:
@@ -207,12 +221,114 @@ Build Web:
       - dist/
     expire_in: 1 week
   rules:
+    # CI: Run on MR and main merge
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_BRANCH == "develop"
 
 # ============================================
-# Sync Stage - Push to GitHub after merge to main
+# EAS Build Stage - Mobile Builds
+# ============================================
+
+.eas_build_template:
+  stage: build
+  image: node:20
+  needs:
+    - job: TypeScript Check
+    - job: Unit Tests
+  before_script:
+    - npm ci
+    - npm install -g eas-cli
+    - eas whoami || echo "Not logged in - using EXPO_TOKEN"
+  cache:
+    <<: *node_cache
+
+# Preview Build (Android APK) - On develop branch
+EAS Build Preview Android:
+  extends: .eas_build_template
+  script:
+    - echo "📱 Starting EAS Preview Build for Android..."
+    - eas build --platform android --profile preview --non-interactive --no-wait
+    - echo "✅ Build submitted to EAS! Check https://expo.dev for status."
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop"
+      when: manual
+      allow_failure: true
+
+# Preview Build (iOS) - On develop branch  
+EAS Build Preview iOS:
+  extends: .eas_build_template
+  script:
+    - echo "📱 Starting EAS Preview Build for iOS..."
+    - eas build --platform ios --profile preview --non-interactive --no-wait
+    - echo "✅ Build submitted to EAS! Check https://expo.dev for status."
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop"
+      when: manual
+      allow_failure: true
+
+# Production Build (Both platforms) - On main branch with tag
+EAS Build Production:
+  extends: .eas_build_template
+  script:
+    - echo "🚀 Starting EAS Production Build..."
+    - eas build --platform all --profile production --non-interactive --no-wait
+    - echo "✅ Production build submitted to EAS!"
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
+      when: manual
+      allow_failure: true
+
+# ============================================
+# Deploy Stage - OTA Updates
+# ============================================
+
+# EAS Update for Preview (OTA) - CD: Only on main merge
+EAS Update Preview:
+  stage: deploy
+  image: node:20
+  needs:
+    - job: Build Web
+  before_script:
+    - npm ci
+    - npm install -g eas-cli
+  script:
+    - echo "📡 Publishing OTA Update to Preview channel..."
+    - eas update --branch preview --message "Preview update from ${CI_COMMIT_SHORT_SHA}"
+    - echo "✅ OTA Update published to preview channel!"
+  cache:
+    <<: *node_cache
+  rules:
+    # CD: Only on main merge (manual trigger for preview testing)
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: manual
+      allow_failure: true
+
+# EAS Update for Production (OTA) - CD: Only on main merge
+EAS Update Production:
+  stage: deploy
+  image: node:20
+  needs:
+    - job: Build Web
+  before_script:
+    - npm ci
+    - npm install -g eas-cli
+  script:
+    - echo "📡 Publishing OTA Update to Production channel..."
+    - eas update --branch production --message "Production update ${CI_COMMIT_TAG:-$CI_COMMIT_SHORT_SHA}"
+    - echo "✅ OTA Update published to production channel!"
+  cache:
+    <<: *node_cache
+  rules:
+    # CD: Only on main merge (manual for safety)
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: manual
+      allow_failure: true
+    # CD: Auto-trigger on version tags
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
+      when: on_success
+
+# ============================================
+# Sync Stage - Automatic Push to GitHub after merge to main
 # ============================================
 
 Sync to GitHub:
@@ -224,11 +340,17 @@ Sync to GitHub:
   before_script:
     - apk add --no-cache git
   script:
-    - echo "🔄 Syncing to GitHub..."
-    - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/3asoftwares/E-Storefront-Mobile.git || true
+    - echo "🔄 Automatically syncing to GitHub main branch..."
+    - echo "   GitLab commit: ${CI_COMMIT_SHA}"
+    - echo "   Branch: ${CI_COMMIT_BRANCH}"
+    - git config --global user.email "ci@3asoftwares.com"
+    - git config --global user.name "GitLab CI"
+    - git remote add github https://oauth2:${GITHUB_TOKEN}@github.com/3asoftwares/E-Storefront-Mobile.git 2>/dev/null || git remote set-url github https://oauth2:${GITHUB_TOKEN}@github.com/3asoftwares/E-Storefront-Mobile.git
+    - git fetch github main --depth=1 || true
     - git push github HEAD:main --force
-    - echo "✅ Successfully synced to GitHub!"
+    - echo "✅ Successfully synced to GitHub main branch!"
   rules:
+    # AUTOMATIC: Sync to GitHub on every merge to main
     - if: $CI_COMMIT_BRANCH == "main"
       when: on_success
   needs:
