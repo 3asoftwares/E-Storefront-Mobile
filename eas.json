@@ -15,6 +15,7 @@
       "developmentClient": true,
       "distribution": "internal",
       "channel": "development",
+      "environment": "development",
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleDebug"
@@ -30,6 +31,7 @@
       "extends": "base",
       "distribution": "internal",
       "channel": "preview",
+      "environment": "production",
       "android": {
         "buildType": "apk"
       },
@@ -42,15 +44,15 @@
     },
     "production": {
       "extends": "base",
-      "distribution": "store",
+      "distribution": "internal",
       "channel": "production",
-      "autoIncrement": true,
+      "environment": "production",
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "apk",
+        "applicationArchivePath": "build/3asoftwares.apk"
       },
       "ios": {
-        "resourceClass": "m-medium",
-        "autoIncrement": "buildNumber"
+        "resourceClass": "m-medium"
       },
       "env": {
         "EXPO_PUBLIC_APP_ENV": "production",
