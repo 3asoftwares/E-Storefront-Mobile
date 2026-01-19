@@ -189,7 +189,7 @@ jobs:
         run: npm ci --prefer-offline --no-audit
 
       - name: Run tests with coverage
-        run: npm test -- --passWithNoTests --ci --coverage
+        run: npm test -- --passWithNoTests --ci --coverage --forceExit
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4

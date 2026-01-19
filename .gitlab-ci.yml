@@ -152,7 +152,7 @@ Unit Tests:
     - job: Install Dependencies
   script:
     - echo "Running unit tests with coverage..."
-    - npm test -- --passWithNoTests --ci --coverage
+    - npm test -- --passWithNoTests --ci --coverage --forceExit
   artifacts:
     name: "coverage-${CI_COMMIT_SHORT_SHA}"
     paths:
