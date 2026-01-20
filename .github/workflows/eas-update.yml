@@ -55,16 +55,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: 'yarn'
 
       - name: Install dependencies
-        run: npm ci
+        run: yarn install --frozen-lockfile
 
       - name: TypeScript check
-        run: npm run typecheck
+        run: yarn typecheck
 
       - name: Run tests
-        run: npm test -- --passWithNoTests --ci
+        run: yarn test --passWithNoTests --ci
 
   # ============================================
   # Publish OTA Update
@@ -80,7 +80,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: 'yarn'
 
       - name: Setup EAS CLI
         uses: expo/expo-github-action@v8
@@ -89,7 +89,7 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Install dependencies
-        run: npm ci
+        run: yarn install --frozen-lockfile
 
       - name: Determine update parameters
         id: params
