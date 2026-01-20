@@ -82,6 +82,41 @@ git push -u origin feature/name              # Push branch
 
 ---
 
+## 🦊 GitLab Push Commands
+
+### Initial Setup
+
+```bash
+git remote add gitlab https://gitlab.com/username/repo.git   # Add GitLab remote
+git remote -v                                                  # Verify remotes
+```
+
+### Push to GitLab
+
+```bash
+git push gitlab main                         # Push main to GitLab
+git push gitlab --all                        # Push all branches
+git push gitlab --tags                       # Push all tags
+git push -u gitlab feature/name              # Push & track branch
+git push gitlab main --force                 # Force push (use carefully)
+```
+
+### Mirror to GitLab
+
+```bash
+git push --mirror gitlab                     # Mirror entire repo
+git remote set-url --push origin https://gitlab.com/username/repo.git  # Set push URL
+```
+
+### Push to Multiple Remotes
+
+```bash
+git remote set-url --add --push origin https://gitlab.com/username/repo.git  # Add GitLab as push target
+git push origin --all                        # Push to all configured remotes
+```
+
+---
+
 ## 🦊 GitLab CLI (glab)
 
 ### Install
