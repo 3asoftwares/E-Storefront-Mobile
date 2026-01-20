@@ -48,8 +48,7 @@
       "channel": "production",
       "environment": "production",
       "android": {
-        "buildType": "apk",
-        "applicationArchivePath": "build/3asoftwares.apk"
+        "buildType": "apk"
       },
       "ios": {
         "resourceClass": "m-medium"
