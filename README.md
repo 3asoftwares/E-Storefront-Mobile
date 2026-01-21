@@ -41,18 +41,18 @@ Customer-facing mobile e-commerce application built with **React Native** and **
 | ------------ | ------- | ------------------------------- |
 | React Native | 0.74.5  | Cross-platform mobile framework |
 | Expo         | SDK 51  | Development platform & tooling  |
-| TypeScript   | 5.0+    | Type safety                     |
-| Expo Router  | 3.5     | File-based routing              |
+| TypeScript   | 5.3     | Type safety                     |
+| Expo Router  | 3.5.23  | File-based routing              |
+| React        | 18.2.0  | UI library                      |
 
 ### State & Data
 
-| Technology        | Purpose                  |
-| ----------------- | ------------------------ |
-| Zustand           | Client state management  |
-| Apollo Client     | GraphQL data fetching    |
-| TanStack Query    | Server state & caching   |
-| Async Storage     | Persistent local storage |
-| Expo Secure Store | Secure token storage     |
+| Technology            | Version | Purpose                  |
+| --------------------- | ------- | ------------------------ |
+| Zustand               | 4.5.2   | Client state management  |
+| Apollo Client         | 3.8.10  | GraphQL data fetching    |
+| TanStack React Query  | 5.28.0  | Server state & caching   |
+| Async Storage         | 1.23.1  | Persistent local storage |
 
 ### UI & Styling
 
@@ -60,17 +60,28 @@ Customer-facing mobile e-commerce application built with **React Native** and **
 | -------------------- | -------------------- |
 | React Native         | Native components    |
 | Expo Linear Gradient | Gradient backgrounds |
-| FontAwesome          | Icon library         |
+| FontAwesome 7.1      | Icon library         |
 | React Native SVG     | SVG support          |
 
 ### Testing & Build
 
-| Technology | Purpose                      |
-| ---------- | ---------------------------- |
-| Jest       | Unit testing                 |
-| Cypress    | E2E testing (web)            |
-| EAS Build  | Cloud builds for iOS/Android |
-| EAS Update | Over-the-air updates         |
+| Technology          | Version | Purpose                      |
+| ------------------- | ------- | ---------------------------- |
+| Jest                | 29.7.0  | Unit testing                 |
+| Jest Expo           | 51.0.0  | Expo-specific Jest preset    |
+| Testing Library RN  | 12.4.3  | React Native testing         |
+| Cypress             | 13.6.0  | E2E testing (web)            |
+| EAS Build           | -       | Cloud builds for iOS/Android |
+| EAS Update          | -       | Over-the-air updates         |
+
+### Development Tools
+
+| Technology           | Purpose              |
+| -------------------- | -------------------- |
+| ESLint 8.57          | Code linting         |
+| Prettier 3.2         | Code formatting      |
+| Metro Bundler 0.80.9 | JavaScript bundler   |
+| Babel                | JavaScript compiler  |
 
 ## 🎨 Technology Architecture
 
@@ -350,11 +361,33 @@ All documentation is located in the [`docs/`](docs/) folder:
 
 ### Technology Guides
 
-| Document                                             | Description         |
-| ---------------------------------------------------- | ------------------- |
-| [REACT_NATIVE.md](docs/technologies/REACT_NATIVE.md) | React Native 0.74.5 |
-| [EXPO.md](docs/technologies/EXPO.md)                 | Expo SDK 51         |
-| [EXPO_ROUTER.md](docs/technologies/EXPO_ROUTER.md)   | Expo Router 3.5     |
+| Document                                                     | Description              |
+| ------------------------------------------------------------ | ------------------------ |
+| [Technologies Overview](docs/technologies/)                  | Full tech stack docs     |
+| [React Native](docs/technologies/REACT_NATIVE.md)            | React Native 0.74.5      |
+| [Expo](docs/technologies/EXPO.md)                            | Expo SDK 51              |
+| [Expo Router](docs/technologies/EXPO_ROUTER.md)              | Expo Router 3.5          |
+| [TypeScript](docs/technologies/TYPESCRIPT.md)                | TypeScript 5.x           |
+| [Zustand](docs/technologies/ZUSTAND.md)                      | Zustand state management |
+| [React Query](docs/technologies/REACT_QUERY.md)              | TanStack React Query     |
+| [Apollo Client](docs/technologies/APOLLO_CLIENT.md)          | Apollo Client GraphQL    |
+| [Async Storage](docs/technologies/ASYNC_STORAGE.md)          | Persistent storage       |
+| [Jest](docs/technologies/JEST.md)                            | Jest unit testing        |
+| [Testing Library](docs/technologies/TESTING_LIBRARY.md)      | React Native Testing     |
+| [Cypress](docs/technologies/CYPRESS.md)                      | Cypress E2E testing      |
+| [ESLint & Prettier](docs/technologies/ESLINT_PRETTIER.md)    | Code quality             |
+| [EAS Build](docs/technologies/EAS_BUILD.md)                  | Cloud builds             |
+| [Metro](docs/technologies/METRO.md)                          | Metro bundler            |
+| [FontAwesome](docs/technologies/FONTAWESOME.md)              | FontAwesome icons        |
+| [Styling](docs/technologies/STYLING.md)                      | Styling patterns         |
+| [Components](docs/technologies/COMPONENTS.md)                | Component architecture   |
+
+### API & Architecture
+
+| Document                            | Description           |
+| ----------------------------------- | --------------------- |
+| [API](docs/API.md)                  | GraphQL API reference |
+| [Documentation Index](docs/README.md) | All documentation   |
 
 ### Additional Documentation
 
