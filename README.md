@@ -33,44 +33,23 @@ Customer-facing mobile e-commerce application built with **React Native** and **
 | 🔐 **Authentication** | Secure login with JWT tokens                      |
 | 📱 **Cross-Platform** | iOS, Android, and Web support                     |
 
-## 🛠️ Tech Stack
-
-### Core
-
-| Technology   | Version | Purpose                         |
-| ------------ | ------- | ------------------------------- |
-| React Native | 0.74.5  | Cross-platform mobile framework |
-| Expo         | SDK 51  | Development platform & tooling  |
-| TypeScript   | 5.0+    | Type safety                     |
-| Expo Router  | 3.5     | File-based routing              |
-
-### State & Data
-
-| Technology        | Purpose                  |
-| ----------------- | ------------------------ |
-| Zustand           | Client state management  |
-| Apollo Client     | GraphQL data fetching    |
-| TanStack Query    | Server state & caching   |
-| Async Storage     | Persistent local storage |
-| Expo Secure Store | Secure token storage     |
-
-### UI & Styling
-
-| Technology           | Purpose              |
-| -------------------- | -------------------- |
-| React Native         | Native components    |
-| Expo Linear Gradient | Gradient backgrounds |
-| FontAwesome          | Icon library         |
-| React Native SVG     | SVG support          |
-
-### Testing & Build
-
-| Technology | Purpose                      |
-| ---------- | ---------------------------- |
-| Jest       | Unit testing                 |
-| Cypress    | E2E testing (web)            |
-| EAS Build  | Cloud builds for iOS/Android |
-| EAS Update | Over-the-air updates         |
+| Category             | Technologies                     |
+| -------------------- | -------------------------------- |
+| Framework            | React Native 0.74.5              |
+| Development Platform | Expo SDK 51                      |
+| Language             | TypeScript 5.0+                  |
+| Routing              | Expo Router 3.5                  |
+| State Management     | Zustand                          |
+| API Layer            | Apollo Client (GraphQL)          |
+| Server State         | TanStack React Query             |
+| Storage              | Async Storage, Expo Secure Store |
+| UI Components        | React Native                     |
+| Styling & UI         | Expo Linear Gradient             |
+| Icons                | FontAwesome                      |
+| Graphics             | React Native SVG                 |
+| Testing              | Jest                             |
+| E2E Testing          | Cypress (Web)                    |
+| Build & Deployment   | EAS Build, EAS Update            |
 
 ## 🎨 Technology Architecture
 
