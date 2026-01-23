@@ -161,7 +161,6 @@ export default function CartScreen() {
     try {
       const result = await validateCoupon({ code: couponCode.trim(), orderTotal: subtotal });
       // eslint-disable-next-line no-console
-      console.log('Coupon result:', result);
       if (result?.valid) {
         setAppliedCoupon({
           code: result.code || couponCode.trim(),
